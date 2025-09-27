@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ai-advanced",
+    "title": "Advanced AI Engineering",
+    "description": "Cutting-edge AI topics: Large Language Models, Reinforcement Learning, and AI Deployment.",
+    "lessons": [
+      {
+        "id": "ai-1",
+        "title": "Large Language Models Deep Dive",
+        "explanation": "Learn the architecture, training process, and fine-tuning of LLMs like GPT.",
+        "code_example": "from transformers import GPT2LMHeadModel, GPT2Tokenizer\nmodel = GPT2LMHeadModel.from_pretrained('gpt2')\n...",
+        "task": "Fine-tune GPT-2 with a custom dataset."
+      },
+      {
+        "id": "ai-2",
+        "title": "AI Deployment at Scale",
+        "explanation": "Serve AI models with low latency using FastAPI + GPUs.",
+        "code_example": "from fastapi import FastAPI\nimport torch\napp = FastAPI()",
+        "task": "Deploy a HuggingFace model to production."
+      }
+    ],
+    "exclusive_video": "https://premium.yoursite.com/ai-course-video.mp4"
+  },
+  {
+    "id": "blockchain-advanced",
+    "title": "Blockchain & Smart Contracts",
+    "description": "Build secure smart contracts, explore DeFi, and create DApps.",
+    "exclusive_video": "https://premium.yoursite.com/blockchain-masterclass.mp4"
+  },
+  {
+    "id": "cybersecurity-pro",
+    "title": "Cybersecurity Pro Series",
+    "description": "Ethical hacking, penetration testing, and zero-day exploit analysis.",
+    "exclusive_video": "https://premium.yoursite.com/cybersecurity-lab.mp4"
+  },
+  {
+    "id": "insider-tips",
+    "title": "Insider Dev Tips",
+    "description": "Real industry tips that are never shared publicly.",
+    "exclusive_video": "https://premium.yoursite.com/insider-tips.mp4"
+  }
+]

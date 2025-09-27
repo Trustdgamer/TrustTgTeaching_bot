@@ -1,0 +1,1314 @@
+{
+  "python": [
+    {
+      "id": "python_lesson_1",
+      "title": "Introduction to Python & Installation",
+      "explanation": "Python is a powerful, easy-to-learn programming language used for web development, automation, data science, AI, and more. It has a simple syntax that resembles English, making it beginner-friendly.\n\nIn this lesson, we\u2019ll explain:\n\u2022 What Python is.\n\u2022 What it's used for (examples: building websites, writing scripts, analyzing data).\n\u2022 How to install Python on Windows/Mac/Linux.\n\nAfter installation, we\u2019ll write our first program to make sure Python is working.",
+      "code_example": "print(\"Hello, Python world!\")",
+      "task": "Install Python on your computer. Then, open a terminal or code editor and write your own 'Hello, world!' program."
+    },
+    {
+      "id": "python_lesson_2",
+      "title": "Variables and Data Types",
+      "explanation": "In Python, a variable is like a container that stores information. For example, if you want to store a name or a number, you assign it to a variable. Think of it like a labeled jar that holds something.\n\nPython has several data types:\n\u2022 `int` \u2013 for whole numbers like 1, 50, -3\n\u2022 `float` \u2013 for decimal numbers like 3.14, -0.5\n\u2022 `str` \u2013 for text like 'hello'\n\u2022 `bool` \u2013 for True/False values\n\nRules for naming variables:\n\u2022 Names must start with a letter or underscore (_)\n\u2022 Cannot start with a number\n\u2022 Can only contain letters, numbers, and underscores\n\nVariables help us store and work with data in our code.",
+      "code_example": "name = \"TrustBuddy\"\nage = 18\nis_active = True\nprint(name, age, is_active)",
+      "task": "Declare 3 variables: one string, one integer, and one boolean. Print all of them in one line."
+    },
+    {
+      "id": "python_lesson_3",
+      "title": "Control Flow \u2013 if, elif, else",
+      "explanation": "Control flow allows your program to make decisions based on conditions. In Python, we use `if`, `elif`, and `else`.\n\nSyntax:\n\u2022 `if` checks a condition\n\u2022 `elif` checks another condition if the previous one was false\n\u2022 `else` runs if none of the above conditions were true\n\nPython uses indentation (spaces or tabs) to define blocks of code under these statements.\nExample: if someone scores 90 or more, we say 'Excellent'; 70-89, we say 'Good'; below 70, 'Needs Improvement'.",
+      "code_example": "score = 75\nif score &gt;= 90:\n    print(\"Excellent\")\nelif score &gt;= 70:\n    print(\"Good\")\nelse:\n    print(\"Needs Improvement\")",
+      "task": "Ask the user for their score. Then write a program that prints 'Excellent', 'Good', or 'Needs Improvement' based on the score."
+    },
+    {
+      "id": "python_lesson_4",
+      "title": "Taking User Input",
+      "explanation": "Sometimes, we want to ask the user to enter something like their name or age. Python has a built-in function called `input()` that allows us to get text from the user.\n\nBy default, everything entered using `input()` is considered a string (text), even if the user types a number.\n\nTo convert that string to a number (like integer or float), we use `int()` or `float()`.",
+      "code_example": "name = input(\"What's your name? \")\nage = int(input(\"How old are you? \"))\nprint(\"Hello\", name, \"you are\", age, \"years old.\")",
+      "task": "Write a program that asks the user for their name and age, and then prints a greeting like: Hello [Name], you are [Age] years old."
+    },
+    {
+      "id": "python_lesson_5",
+      "title": "Operators in Python",
+      "explanation": "Operators are symbols that perform actions on variables and values.\n\nTypes of operators:\n\u2022 Arithmetic: +, -, *, /, //, %, **\n\u2022 Comparison: ==, !=, &gt;, &lt;, &gt;=, &lt;=\n\u2022 Logical: and, or, not\n\nUse arithmetic operators to do math, comparison operators to compare values, and logical operators to combine conditions.",
+      "code_example": "a = 10\nb = 3\nprint(a + b)  # 13\nprint(a &gt; b and b &gt; 1)  # True",
+      "task": "Create two variables and use each arithmetic operator on them. Print the result of each operation."
+    },
+    {
+      "id": "python_lesson_6",
+      "title": "Lists (Arrays)",
+      "explanation": "A list is a collection of items, like numbers, names, or anything else. It is like a box with compartments that can store multiple values.\n\nLists in Python are written using square brackets []. Items are separated by commas.\n\nYou can access items using index numbers starting from 0.",
+      "code_example": "fruits = [\"apple\", \"banana\", \"cherry\"]\nprint(fruits[0])  # apple\nprint(len(fruits))  # 3",
+      "task": "Create a list of 5 favorite movies. Print the first and last movie using indexing."
+    },
+    {
+      "id": "python_lesson_7",
+      "title": "Loops: for loop",
+      "explanation": "Loops help us repeat actions. A `for` loop lets us run a block of code multiple times. It’s especially useful for going through each item in a list.\n\nSyntax:\n```python\nfor item in collection:\n    do something\n```",
+      "code_example": "fruits = [\"apple\", \"banana\", \"cherry\"]\nfor fruit in fruits:\n    print(fruit)",
+      "task": "Create a list of 5 names and use a for loop to greet each name like: Hello [Name]!"
+    },
+    {
+      "id": "python_lesson_8",
+      "title": "Loops: while loop",
+      "explanation": "A `while` loop keeps running as long as a condition is true. Be careful! If the condition never becomes false, it creates an infinite loop.\n\nUse it when you don’t know ahead of time how many times to loop.",
+      "code_example": "count = 1\nwhile count &lt;= 5:\n    print(\"Counting:\", count)\n    count += 1",
+      "task": "Write a program that keeps asking the user to type 'exit'. Only stop looping when the user types it."
+    },
+    {
+      "id": "python_lesson_9",
+      "title": "Functions",
+      "explanation": "A function is a reusable block of code that does a specific task. You define it once and call it whenever needed.\n\nSyntax:\n```python\ndef function_name():\n    # code here\n```",
+      "code_example": "def greet():\n    print(\"Hello there!\")\ngreet()",
+      "task": "Create a function that prints your name and age. Call the function to test it."
+    },
+    {
+      "id": "python_lesson_10",
+      "title": "Function Parameters and Return Values",
+      "explanation": "Functions can accept inputs called parameters. They can also return values using the `return` keyword.\n\nThink of a function like a machine: you give it input, it processes it, and gives you output.",
+      "code_example": "def add(x, y):\n    return x + y\nresult = add(5, 3)\nprint(result)",
+      "task": "Write a function that accepts a name and returns a greeting like 'Hello, [name]!'"
+    },
+    {
+      "id": "python_lesson_11",
+      "title": "String Methods",
+      "explanation": "Strings have built-in functions (called methods) that let you modify or analyze text. Some popular methods:\n\u2022 `.lower()` - makes all letters lowercase\n\u2022 `.upper()` - makes all letters uppercase\n\u2022 `.strip()` - removes spaces from both ends\n\u2022 `.replace()` - replaces part of the string",
+      "code_example": "name = \" TrustBuddy \"\nprint(name.strip())\nprint(name.upper())",
+      "task": "Ask the user to type a sentence. Print the sentence in uppercase and count how many words it has."
+    },
+    {
+      "id": "python_lesson_12",
+      "title": "String Formatting (f-strings)",
+      "explanation": "F-strings are a way to insert variables into strings. Just add an `f` before the string and use curly braces `{}` to include variables.\n\nThis is cleaner than using `+` to join strings.",
+      "code_example": "name = \"Trust\"\nage = 18\nprint(f\"Hello, my name is {name} and I am {age} years old.\")",
+      "task": "Write a program that asks for your name and age and uses an f-string to greet you."
+    },
+    {
+      "id": "python_lesson_13",
+      "title": "Dictionaries",
+      "explanation": "Dictionaries store data in key-value pairs. Think of it like a real dictionary: you search by word (key) and get a definition (value).\n\nSyntax:\n```python\nperson = {\"name\": \"John\", \"age\": 30}\n```",
+      "code_example": "student = {\"name\": \"Trust\", \"score\": 95}\nprint(student[\"name\"])",
+      "task": "Create a dictionary with your name, age, and country. Print all the values using their keys."
+    },
+    {
+      "id": "python_lesson_14",
+      "title": "List Methods",
+      "explanation": "Lists have methods that help you modify them:\n\u2022 `.append()` - adds item to the end\n\u2022 `.remove()` - removes item by value\n\u2022 `.pop()` - removes item by index\n\u2022 `.sort()` - sorts the list",
+      "code_example": "nums = [3, 1, 4]\nnums.append(2)\nnums.sort()\nprint(nums)",
+      "task": "Create a list of numbers. Add a new number, remove one, and sort the list."
+    },
+    {
+      "id": "python_lesson_15",
+      "title": "Nested Lists and Dictionaries",
+      "explanation": "You can store lists inside lists or dictionaries inside dictionaries. This is called nesting.\n\nUseful when working with complex data like students in a class.",
+      "code_example": "students = [\n    {\"name\": \"Alice\", \"age\": 20},\n    {\"name\": \"Bob\", \"age\": 22}\n]\nprint(students[1][\"name\"])",
+      "task": "Create a list of 2 dictionaries. Each dictionary should have a person's name and age."
+    },
+    {
+      "id": "python_lesson_16",
+      "title": "Boolean Logic",
+      "explanation": "Booleans are either True or False. They are used in conditions and logic.\n\nYou can combine boolean values using:\n\u2022 `and` - both conditions must be true\n\u2022 `or` - at least one condition must be true\n\u2022 `not` - reverses the boolean value",
+      "code_example": "age = 20\nhas_ticket = True\nif age &gt;= 18 and has_ticket:\n    print(\"Welcome to the event\")",
+      "task": "Write a program that asks for age and if the person has a ticket. Allow entry only if both are true."
+    },
+    {
+      "id": "python_lesson_17",
+      "title": "Type Conversion",
+      "explanation": "Sometimes you need to change data types. Python has functions for this:\n\u2022 `int()` - convert to integer\n\u2022 `float()` - convert to float\n\u2022 `str()` - convert to string",
+      "code_example": "age = \"18\"\nage_num = int(age)\nprint(age_num + 2)",
+      "task": "Ask the user to enter a number as a string. Convert it to int and add 10. Print the result."
+    },
+    {
+    "id": "python_lesson_18",
+    "title": "Error Handling with try/except",
+    "explanation": "Sometimes, errors happen in a program (like dividing by zero or converting text to a number). To prevent your program from crashing, we use try/except.\n\nThe code inside `try` is tested. If there's an error, the code inside `except` runs instead.",
+    "code_example": "try:\n    number = int(input(\"Enter a number: \"))\n    print(10 / number)\nexcept:\n    print(\"Something went wrong!\")",
+    "task": "Ask the user to enter a number. Use try/except to catch errors like dividing by 0 or entering text instead of a number."
+  },
+  {
+    "id": "python_lesson_19",
+    "title": "Commenting Your Code",
+    "explanation": "Comments help explain your code to others (and to your future self). Python ignores comments when running the program.\n\nSingle-line comment: starts with `#`\nMulti-line comment: use triple quotes `'''` or `\"\"\"`",
+    "code_example": "# This is a comment\na = 5  # assigning value\n\"\"\"\nThis is a multi-line comment\nExplaining something important\n\"\"\"",
+    "task": "Write a small program with at least 3 comments: one explaining what the program does, and two explaining lines of code."
+  },
+  {
+    "id": "python_lesson_20",
+    "title": "Working with Ranges",
+    "explanation": "The `range()` function generates a sequence of numbers. It's commonly used in loops.\n\nSyntax:\n- `range(end)` → from 0 to end-1\n- `range(start, end)` → from start to end-1\n- `range(start, end, step)` → steps through by a value",
+    "code_example": "for i in range(3):\n    print(\"Hello\")\n\nfor num in range(1, 6):\n    print(num)",
+    "task": "Print numbers from 10 to 1 using a loop and `range()` with a step."
+  },
+  {
+    "id": "python_lesson_21",
+    "title": "Importing Modules",
+    "explanation": "Python has many built-in modules (libraries) with extra features. You can import them into your program using `import`.\n\nExamples:\n- `math` for math functions\n- `random` for generating random values",
+    "code_example": "import math\nprint(math.sqrt(16))\n\nimport random\nprint(random.randint(1, 10))",
+    "task": "Use the `random` module to create a simple number guessing game between 1 and 5."
+  },
+  {
+    "id": "python_lesson_22",
+    "title": "Getting Started with Files",
+    "explanation": "You can read from and write to files using Python. Use `open()` to access a file.\n\nModes:\n- `'r'` → read\n- `'w'` → write (overwrites)\n- `'a'` → append",
+    "code_example": "with open(\"example.txt\", \"w\") as file:\n    file.write(\"Hello, file!\")",
+    "task": "Write a program that creates a file and writes a sentence to it."
+  },
+  {
+    "id": "python_lesson_23",
+    "title": "Reading from Files",
+    "explanation": "To read data from a file, use `.read()` or `.readlines()` after opening it in `'r'` mode.\n\nAlways close files or use `with open(...)` to auto-close.",
+    "code_example": "with open(\"example.txt\", \"r\") as file:\n    content = file.read()\n    print(content)",
+    "task": "Open and read the file you created in the last lesson and print its content."
+  },
+  {
+    "id": "python_lesson_24",
+    "title": "List Comprehensions",
+    "explanation": "List comprehension is a shorter way to create lists. It combines a loop and a condition in one line.",
+    "code_example": "squares = [x*x for x in range(5)]\nprint(squares)",
+    "task": "Create a list of even numbers from 1 to 10 using list comprehension."
+  },
+  {
+    "id": "python_lesson_25",
+    "title": "Working with Sets",
+    "explanation": "A set is like a list but with no duplicate items. It’s useful when you want to store unique values.\n\nUse `{}` to create a set or `set()`.",
+    "code_example": "my_set = {1, 2, 3, 3}\nprint(my_set)  # {1, 2, 3}",
+    "task": "Create a set with some repeated values and print it to see duplicates removed."
+  },
+  {
+    "id": "python_lesson_26",
+    "title": "Working with Tuples",
+    "explanation": "A tuple is like a list, but it cannot be changed (immutable). Use `()` instead of `[]`.\n\nUseful when you want fixed data that shouldn't be modified.",
+    "code_example": "person = (\"John\", 30)\nprint(person[0])",
+    "task": "Create a tuple with your name, age, and city. Print each item using indexing."
+  },
+  {
+    "id": "python_lesson_27",
+    "title": "Using the `in` Keyword",
+    "explanation": "`in` is used to check if a value exists in a list, set, tuple, string, etc.",
+    "code_example": "colors = [\"red\", \"blue\"]\nprint(\"red\" in colors)  # True",
+    "task": "Write a program that checks if a user’s favorite color is in a predefined list of colors."
+  },
+  {
+    "id": "python_lesson_28",
+    "title": "Basic Class and Object",
+    "explanation": "Python is an object-oriented language. A class is like a blueprint. An object is a specific thing built from that blueprint.",
+    "code_example": "class Dog:\n    def bark(self):\n        print(\"Woof!\")\n\nmy_dog = Dog()\nmy_dog.bark()",
+    "task": "Create a class called Car with a method `drive()` that prints 'Vroom!'. Create a car object and call the method."
+  },
+  {
+    "id": "python_lesson_29",
+    "title": "Class with __init__ Constructor",
+    "explanation": "`__init__` is a special method used when creating an object. It lets you set initial values (like name, age, etc.).",
+    "code_example": "class Person:\n    def __init__(self, name):\n        self.name = name\n\np = Person(\"Alice\")\nprint(p.name)",
+    "task": "Create a class called `Student` with name and grade. Print both after creating an object."
+  },
+  {
+    "id": "python_lesson_30",
+    "title": "Final Project: Build a Simple Quiz",
+    "explanation": "Let’s apply everything we’ve learned! We’ll build a simple quiz program that:\n\u2022 Asks 3 questions\n\u2022 Checks answers\n\u2022 Keeps score\n\nUse input, if/else, and loops.",
+    "code_example": "score = 0\nanswer = input(\"What is 2+2? \")\nif answer == \"4\":\n    score += 1\nprint(\"Your score:\", score)",
+    "task": "Create a 3-question quiz. Show the final score at the end."
+  }
+  ],
+  "javascript": [
+  {
+    "id": "js_lesson_1",
+    "title": "Introduction to JavaScript & Setup",
+    "explanation": "JavaScript is one of the core technologies of the web, used to make websites interactive. It runs in the browser and allows you to control dynamic behavior like button clicks, animations, and live updates.\n\nIn this lesson, you’ll learn:\n- What JavaScript is and why it’s important.\n- How it differs from HTML and CSS.\n- How to run JavaScript in your browser using Developer Tools or inside an HTML file.\n\nNo prior programming experience is required — we will walk you through every step like what a browser console is and how code runs in real-time.",
+    "code_example": "console.log(\"Hello, JavaScript World!\");",
+    "task": "Open your browser. Press F12 or right-click and select 'Inspect'. Go to the 'Console' tab and type: console.log(\"I’m learning JavaScript!\");"
+  },
+  {
+    "id": "js_lesson_2",
+    "title": "JavaScript Syntax and Comments",
+    "explanation": "Syntax is the set of rules that define how JavaScript code is written. Comments are used to explain code and are ignored when the program runs.\n\nIn JavaScript:\n- Statements end with a semicolon (;)\n- Comments are written like:\n  - Single line: // This is a comment\n  - Multi-line: /* This is a\n                 multi-line comment */",
+    "code_example": "// This prints a message\nconsole.log(\"Learning syntax!\");\n\n/* This is a multi-line comment */\nconsole.log(\"Comments are useful!\");",
+    "task": "Write two console.log() statements. Add single-line and multi-line comments above each."
+  },
+  {
+    "id": "js_lesson_3",
+    "title": "Variables with let, const, and var",
+    "explanation": "Variables store data values. In JavaScript, we use `let`, `const`, and `var` to declare them:\n- `let` allows you to change the value later.\n- `const` means the value cannot change.\n- `var` is the older way of declaring variables.\n\nUse `let` and `const` mostly.",
+    "code_example": "let name = \"John\";\nconst age = 25;\nconsole.log(name, age);",
+    "task": "Create a variable called `language` with your favorite language. Use `let` and log it to the console."
+  },
+  {
+    "id": "js_lesson_4",
+    "title": "Data Types: Strings, Numbers, Booleans",
+    "explanation": "Data types are kinds of values you can store in variables:\n- String: text, inside quotes (\"Hello\")\n- Number: any number (10, 3.14)\n- Boolean: true or false (logic values)",
+    "code_example": "let greeting = \"Hi\"; // string\nlet score = 100;    // number\nlet passed = true;  // boolean\nconsole.log(greeting, score, passed);",
+    "task": "Declare a string, a number, and a boolean in your console and log them."
+  },
+  {
+    "id": "js_lesson_5",
+    "title": "Operators in JavaScript",
+    "explanation": "Operators perform actions:\n- Arithmetic: +, -, *, /, %\n- Assignment: =, +=, -=\n- Comparison: ==, ===, !=, &gt;, &lt;\n- Logical: &&, ||, !",
+    "code_example": "let x = 10;\nlet y = 5;\nconsole.log(x + y); // 15\nconsole.log(x &gt; y); // true",
+    "task": "Try different arithmetic and comparison operations between two numbers and log the results."
+  },
+  {
+    "id": "js_lesson_6",
+    "title": "Strings and String Methods",
+    "explanation": "Strings are text in quotes. JavaScript offers string methods to work with them:\n- `.length` – counts characters\n- `.toUpperCase()` – converts to caps\n- `.toLowerCase()` – converts to small letters\n- `.includes()` – checks if a string exists inside",
+    "code_example": "let text = \"JavaScript\";\nconsole.log(text.length);\nconsole.log(text.toUpperCase());\nconsole.log(text.includes(\"Script\"));",
+    "task": "Create a string and try all the methods above on it. Log the results."
+  },
+  {
+    "id": "js_lesson_7",
+    "title": "Numbers and Math Methods",
+    "explanation": "JavaScript supports numbers and math operations. You can use the Math object:\n- Math.round(), Math.floor(), Math.ceil()\n- Math.random() – random number between 0 and 1\n- Math.max(), Math.min()",
+    "code_example": "let number = 7.6;\nconsole.log(Math.round(number));\nconsole.log(Math.random());",
+    "task": "Generate a random number and round it using Math methods."
+  },
+  {
+    "id": "js_lesson_8",
+    "title": "Arrays and Indexing",
+    "explanation": "Arrays are used to store multiple values in one variable. Each item has an index starting from 0.\n\nYou can:\n- Access: array[0]\n- Add: array.push()\n- Remove: array.pop()",
+    "code_example": "let fruits = [\"apple\", \"banana\", \"orange\"];\nconsole.log(fruits[1]);\nfruits.push(\"grape\");\nconsole.log(fruits);",
+    "task": "Create an array of 3 colors. Access the second item and add another color to it."
+  },
+  {
+    "id": "js_lesson_9",
+    "title": "Objects and Key-Value Pairs",
+    "explanation": "Objects hold related data in key-value pairs:\n\nExample:\n```js\nlet person = {\n  name: \"Alice\",\n  age: 30\n};\n```\n\nYou can access values using dot `.` or bracket `[]` notation.",
+    "code_example": "let car = {\n  brand: \"Toyota\",\n  model: \"Camry\",\n  year: 2022\n};\nconsole.log(car.brand);\nconsole.log(car[\"year\"]);",
+    "task": "Create an object for a book (title, author, year). Log the title."
+  },
+  {
+    "id": "js_lesson_10",
+    "title": "if Statements and Conditions",
+    "explanation": "`if` statements let you run code based on conditions. Use `else` and `else if` for alternatives:\n\nSyntax:\n```js\nif (condition) {\n  // code\n} else {\n  // other code\n}\n```",
+    "code_example": "let age = 18;\nif (age &gt;= 18) {\n  console.log(\"You can vote.\");\n} else {\n  console.log(\"Too young to vote.\");\n}",
+    "task": "Write an if-else statement that checks if a number is positive or negative."
+  },
+  {
+    "id": "js_lesson_11",
+    "title": "Loops – `while` Loop in JavaScript",
+    "explanation": "A loop allows you to repeat a block of code multiple times. A `while` loop continues as long as a condition is true.\n\nSyntax:\n```js\nwhile (condition) {\n  // code to run\n}\n```\n\nJavaScript checks the condition before running the loop body. If it's true, it executes the block. Once it's false, the loop stops.",
+    "code_example": "let count = 1;\nwhile (count &lt;= 5) {\n  console.log(\"Count is: \" + count);\n  count++;\n}",
+    "task": "Write a `while` loop that prints numbers from 1 to 10."
+  },
+  {
+    "id": "js_lesson_12",
+    "title": "Loops – `do...while` Loop",
+    "explanation": "`do...while` is similar to `while`, but it runs the block at least once before checking the condition.\n\nSyntax:\n```js\ndo {\n  // code\n} while (condition);\n```",
+    "code_example": "let num = 1;\ndo {\n  console.log(\"Number: \" + num);\n  num++;\n} while (num &lt;= 3);",
+    "task": "Create a `do...while` loop that prints \"Welcome!\" 3 times."
+  },
+  {
+    "id": "js_lesson_13",
+    "title": "Loops – `for` Loop",
+    "explanation": "A `for` loop is used when you know how many times to run the loop. It has three parts: initialization, condition, and increment.\n\nSyntax:\n```js\nfor (let i = 0; i &lt; 5; i++) {\n  // code\n}\n```",
+    "code_example": "for (let i = 1; i &lt;= 5; i++) {\n  console.log(\"i = \" + i);\n}",
+    "task": "Write a `for` loop that prints even numbers from 2 to 10."
+  },
+  {
+    "id": "js_lesson_14",
+    "title": "Functions in JavaScript – Basics",
+    "explanation": "Functions are blocks of code that perform a specific task. They help you reuse code.\n\nSyntax:\n```js\nfunction functionName() {\n  // code\n}\n```\nYou can call the function later using `functionName();`",
+    "code_example": "function greet() {\n  console.log(\"Hello!\");\n}\ngreet();",
+    "task": "Create a function called `sayHi` that prints 'Hi there!'"
+  },
+  {
+    "id": "js_lesson_15",
+    "title": "Function Parameters & Return Values",
+    "explanation": "Functions can take parameters (inputs) and return results.\n\nSyntax:\n```js\nfunction add(a, b) {\n  return a + b;\n}\nlet result = add(3, 4);\n```",
+    "code_example": "function multiply(x, y) {\n  return x * y;\n}\nconsole.log(multiply(2, 5));",
+    "task": "Create a function `subtract(a, b)` that returns the result of a - b."
+  },
+  {
+    "id": "js_lesson_16",
+    "title": "JavaScript Arrays – Introduction",
+    "explanation": "An array is a list of values stored in a single variable. You can store strings, numbers, or even other arrays.\n\nSyntax:\n```js\nlet fruits = [\"apple\", \"banana\", \"cherry\"];\n```",
+    "code_example": "let numbers = [1, 2, 3, 4];\nconsole.log(numbers[0]); // prints 1",
+    "task": "Create an array of 5 colors and print the third one."
+  },
+  {
+    "id": "js_lesson_17",
+    "title": "Array Methods – `push()`, `pop()`, `length`",
+    "explanation": "`push()` adds an item to the end of an array. `pop()` removes the last item. `length` gives the number of elements.\n\nExample:\n```js\nlet nums = [1, 2];\nnums.push(3); // [1, 2, 3]\nnums.pop();   // [1, 2]\n```",
+    "code_example": "let books = [\"Book A\", \"Book B\"];\nbooks.push(\"Book C\");\nconsole.log(books);\nbooks.pop();\nconsole.log(books);\nconsole.log(books.length);",
+    "task": "Create an array of 3 movies. Add 1 more with `push()`, remove 1 with `pop()`."
+  },
+  {
+    "id": "js_lesson_18",
+    "title": "Objects in JavaScript – Basics",
+    "explanation": "Objects let you group related data. They're made of key–value pairs.\n\nSyntax:\n```js\nlet person = {\n  name: \"Alice\",\n  age: 25\n};\n```",
+    "code_example": "let car = {\n  brand: \"Toyota\",\n  year: 2020\n};\nconsole.log(car.brand);",
+    "task": "Create an object `student` with name, class, and grade. Print one of the values."
+  },
+  {
+    "id": "js_lesson_19",
+    "title": "Conditional Operators – `==`, `===`, `!=`, `!==`",
+    "explanation": "`==` compares values (ignores type), `===` compares value and type. `!=` and `!==` are the opposite.\n\nExample:\n```js\n5 == '5'   // true\n5 === '5'  // false\n```",
+    "code_example": "let x = 5;\nconsole.log(x == '5');  // true\nconsole.log(x === '5'); // false",
+    "task": "Try comparing 10 and '10' using both `==` and `===`. Observe the result."
+  },
+  {
+    "id": "js_lesson_20",
+    "title": "Logical Operators – `&&`, `||`, `!`",
+    "explanation": "Logical operators help you combine conditions:\n- `&&` (AND) is true if both conditions are true.\n- `||` (OR) is true if one condition is true.\n- `!` (NOT) reverses the condition.",
+    "code_example": "let age = 20;\nif (age &gt;= 18 && age &lt;= 30) {\n  console.log(\"You are in the target age group\");\n}",
+    "task": "Use `||` to check if a number is less than 5 or greater than 15."
+  },
+  {
+    "id": 21,
+    "title": "JavaScript Sets",
+    "explanation": "A Set is a collection of unique values in JavaScript. It can store any type of value, and duplicate entries are automatically removed. Sets are useful for filtering duplicates and checking for membership efficiently.",
+    "code_example": "const mySet = new Set([1, 2, 3, 3]);\nconsole.log(mySet); // Set {1, 2, 3}\nmySet.add(4);\nconsole.log(mySet.has(2)); // true\nmySet.delete(1);\nconsole.log(mySet.size); // 3",
+    "task": "Create a Set from an array with duplicate numbers, remove a value, and log the size of the Set."
+  },
+  {
+    "id": 22,
+    "title": "JavaScript Maps",
+    "explanation": "A Map in JavaScript is a collection of key-value pairs where keys can be of any type. Maps remember the original insertion order of keys, unlike plain objects where keys are strings or symbols.",
+    "code_example": "const myMap = new Map();\nmyMap.set('name', 'John');\nmyMap.set(1, 'Number One');\nconsole.log(myMap.get('name')); // John\nconsole.log(myMap.has(1)); // true\nmyMap.delete('name');\nconsole.log(myMap.size); // 1",
+    "task": "Create a Map to store different types of keys and values. Add, retrieve, and delete entries."
+  },
+  {
+    "id": 23,
+    "title": "JavaScript Classes",
+    "explanation": "Classes in JavaScript are templates for creating objects. They provide a cleaner syntax for object-oriented programming, supporting constructors and methods.",
+    "code_example": "class Person {\n  constructor(name, age) {\n    this.name = name;\n    this.age = age;\n  }\n  greet() {\n    console.log(`Hello, my name is ${this.name} and I am ${this.age} years old.`);\n  }\n}\nconst john = new Person('John', 30);\njohn.greet();",
+    "task": "Create a class `Car` with properties `brand` and `year`. Add a method to display a description."
+  },
+  {
+    "id": 24,
+    "title": "JavaScript Inheritance",
+    "explanation": "Inheritance allows one class to extend another, reusing code and creating a hierarchy. The `extends` keyword is used for inheritance, and `super()` calls the parent constructor.",
+    "code_example": "class Animal {\n  constructor(name) {\n    this.name = name;\n  }\n  speak() {\n    console.log(`${this.name} makes a sound.`);\n  }\n}\nclass Dog extends Animal {\n  speak() {\n    console.log(`${this.name} barks.`);\n  }\n}\nconst dog = new Dog('Rex');\ndog.speak();",
+    "task": "Create a base class `Shape` and a derived class `Circle` that overrides a method to calculate the area."
+  },
+  {
+    "id": 25,
+    "title": "JavaScript Promises",
+    "explanation": "A Promise represents the eventual result of an asynchronous operation. It can be in one of three states: pending, fulfilled, or rejected. Use `.then()` for success and `.catch()` for errors.",
+    "code_example": "const fetchData = new Promise((resolve, reject) =&gt; {\n  setTimeout(() =&gt; resolve('Data loaded'), 1000);\n});\nfetchData.then(data =&gt; console.log(data)).catch(err =&gt; console.error(err));",
+    "task": "Create a Promise that resolves after 2 seconds with a success message and logs it."
+  },
+  {
+    "id": 26,
+    "title": "JavaScript async/await",
+    "explanation": "`async/await` syntax is a cleaner way to work with Promises. `await` pauses execution until the Promise resolves, making asynchronous code look synchronous.",
+    "code_example": "async function getData() {\n  const promise = new Promise(resolve =&gt; setTimeout(() =&gt; resolve('Data received'), 1000));\n  const result = await promise;\n  console.log(result);\n}\ngetData();",
+    "task": "Write an async function that waits for 3 seconds before printing a message."
+  },
+  {
+    "id": 27,
+    "title": "JavaScript Modules",
+    "explanation": "Modules allow you to split code into separate files for better organization. Use `export` to expose variables or functions, and `import` to use them in another file.",
+    "code_example": "// math.js\nexport function add(a, b) { return a + b; }\n// main.js\nimport { add } from './math.js';\nconsole.log(add(2, 3)); // 5",
+    "task": "Create a module that exports a function and import it into another file."
+  },
+  {
+    "id": 28,
+    "title": "JavaScript Error Handling",
+    "explanation": "Error handling in JavaScript is done with `try...catch`. You can catch exceptions and handle them gracefully, preventing your program from crashing.",
+    "code_example": "try {\n  throw new Error('Something went wrong');\n} catch (error) {\n  console.error(error.message);\n} finally {\n  console.log('This runs no matter what.');\n}",
+    "task": "Write a function that throws an error if a parameter is not a number, and handle it using try...catch."
+  },
+  {
+    "id": 29,
+    "title": "JavaScript Regular Expressions",
+    "explanation": "Regular expressions (regex) are patterns used to match character combinations in strings. They are useful for validation, searching, and replacing text.",
+    "code_example": "const regex = /hello/i;\nconsole.log(regex.test('Hello World')); // true\nconsole.log('Hello World'.replace(/hello/i, 'Hi')); // Hi World",
+    "task": "Write a regex that matches any email address and test it with a sample string."
+  },
+  {
+    "id": 30,
+    "title": "JavaScript ES6+ Features Overview",
+    "explanation": "ES6 and later versions introduced many new features like let/const, arrow functions, template literals, destructuring, spread/rest operators, and more. These make JavaScript more powerful and easier to write.",
+    "code_example": "const person = { name: 'Alice', age: 25 };\nconst { name, age } = person;\nconsole.log(`${name} is ${age} years old.`);\nconst nums = [1, 2, 3];\nconst newNums = [...nums, 4];\nconsole.log(newNums);",
+    "task": "Create an object and use destructuring to extract its properties, then use the spread operator to copy an array."
+  }
+],
+  "c":  [
+  {
+    "id": "c_1",
+    "title": "Introduction to C Programming",
+    "explanation": "C is a powerful, general-purpose programming language developed in the early 1970s. It is widely used for system programming, embedded systems, and high-performance applications. Understanding C helps you learn how computers work at a low level.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}",
+    "task": "Write a C program that prints your name and age."
+  },
+  {
+    "id": "c_2",
+    "title": "Basic Syntax",
+    "explanation": "C programs consist of functions, the most common being `main()`. Every statement ends with a semicolon `;` and curly braces `{}` are used to group statements together. The `#include` directive imports header files like `stdio.h` for input/output.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    printf(\"C syntax example\\n\");\n    return 0;\n}",
+    "task": "Write a C program that prints three different sentences on three separate lines."
+  },
+  {
+    "id": "c_3",
+    "title": "Variables and Data Types",
+    "explanation": "Variables store data in C, and their types define the kind of data they can hold. Common types include `int` (integers), `float` (decimals), `char` (characters). You must declare variables before using them.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int age = 20;\n    float height = 5.9;\n    char grade = 'A';\n    printf(\"Age: %d\\nHeight: %.1f\\nGrade: %c\\n\", age, height, grade);\n    return 0;\n}",
+    "task": "Declare an integer, a float, and a char variable, assign them values, and print them."
+  },
+  {
+    "id": "c_4",
+    "title": "Constants",
+    "explanation": "Constants are values that cannot change during program execution. In C, you can define them using the `const` keyword or `#define` macro. Constants improve code readability and prevent accidental changes.",
+    "code_example": "#include &lt;stdio.h&gt;\n#define PI 3.14\nint main() {\n    const int DAYS_IN_WEEK = 7;\n    printf(\"PI: %.2f\\nDays in a week: %d\\n\", PI, DAYS_IN_WEEK);\n    return 0;\n}",
+    "task": "Define a constant for your birth year and print it."
+  },
+  {
+    "id": "c_5",
+    "title": "Basic Input and Output",
+    "explanation": "C uses `printf()` for output and `scanf()` for input. `scanf()` reads user input and stores it in variables. Remember to use the correct format specifiers: `%d` for integers, `%f` for floats, `%c` for characters, `%s` for strings.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int age;\n    printf(\"Enter your age: \");\n    scanf(\"%d\", &age);\n    printf(\"You entered: %d\\n\", age);\n    return 0;\n}",
+    "task": "Write a program that asks for your name and prints it."
+  },
+  {
+    "id": "c_6",
+    "title": "Operators",
+    "explanation": "C supports arithmetic operators (`+`, `-`, `*`, `/`, `%`), relational operators (`==`, `!=`, `&lt;`, `&gt;`, `&lt;=`, `&gt;=`), and logical operators (`&&`, `||`, `!`). Operators are used to perform calculations and comparisons.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int a = 5, b = 2;\n    printf(\"Sum: %d\\n\", a + b);\n    printf(\"Product: %d\\n\", a * b);\n    printf(\"Is a &gt; b? %d\\n\", a &gt; b);\n    return 0;\n}",
+    "task": "Write a program that takes two numbers and prints their sum, difference, and product."
+  },
+  {
+    "id": "c_7",
+    "title": "If-Else Statements",
+    "explanation": "Conditional statements allow your program to make decisions. The `if` statement executes code only if a condition is true, while `else` executes code when the condition is false.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int num;\n    printf(\"Enter a number: \");\n    scanf(\"%d\", &num);\n    if (num % 2 == 0) {\n        printf(\"Even number\\n\");\n    } else {\n        printf(\"Odd number\\n\");\n    }\n    return 0;\n}",
+    "task": "Write a C program that checks if a user-entered number is positive, negative, or zero."
+  },
+  {
+    "id": "c_8",
+    "title": "Switch Statements",
+    "explanation": "A `switch` statement is used to execute one block of code from many options, based on the value of an expression. It is useful when you have many discrete cases.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int day = 3;\n    switch (day) {\n        case 1: printf(\"Monday\\n\"); break;\n        case 2: printf(\"Tuesday\\n\"); break;\n        case 3: printf(\"Wednesday\\n\"); break;\n        default: printf(\"Invalid day\\n\");\n    }\n    return 0;\n}",
+    "task": "Write a switch statement that prints the name of a month based on its number."
+  },
+  {
+    "id": "c_9",
+    "title": "Loops: For Loop",
+    "explanation": "A `for` loop repeats code a specific number of times. It has three parts: initialization, condition, and increment/decrement. For example: `for(int i=0; i&lt;5; i++)`.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    for (int i = 1; i &lt;= 5; i++) {\n        printf(\"Iteration %d\\n\", i);\n    }\n    return 0;\n}",
+    "task": "Write a program that prints numbers from 1 to 10 using a for loop."
+  },
+  {
+    "id": "c_10",
+    "title": "Loops: While and Do-While",
+    "explanation": "A `while` loop repeats code while a condition is true. A `do-while` loop runs the code at least once before checking the condition.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int i = 1;\n    while (i &lt;= 5) {\n        printf(\"While: %d\\n\", i);\n        i++;\n    }\n    int j = 1;\n    do {\n        printf(\"Do-While: %d\\n\", j);\n        j++;\n    } while (j &lt;= 5);\n    return 0;\n}",
+    "task": "Write a program that asks the user for numbers until they enter zero."
+  },
+  {
+    "id": 11,
+    "title": "Loops in C: while, do-while, and for",
+    "explanation": "Loops allow you to repeat a block of code multiple times without writing it repeatedly. C supports three main types: `while` (checks condition before executing), `do-while` (executes once before checking the condition), and `for` (ideal when you know the number of iterations). Loops are essential for automation and avoiding repetition.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int i = 1;\n    while (i &lt;= 3) {\n        printf(\"While loop: %d\\n\", i);\n        i++;\n    }\n\n    int j = 1;\n    do {\n        printf(\"Do-while loop: %d\\n\", j);\n        j++;\n    } while (j &lt;= 3);\n\n    for (int k = 1; k &lt;= 3; k++) {\n        printf(\"For loop: %d\\n\", k);\n    }\n    return 0;\n}",
+    "task": "Write a C program that prints numbers from 10 down to 1 using a `for` loop."
+  },
+  {
+    "id": 12,
+    "title": "Break and Continue Statements",
+    "explanation": "`break` exits the loop immediately, while `continue` skips the current iteration and moves to the next. These are used to control loop execution flow in special cases, like when a certain condition is met or needs to be skipped.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    for (int i = 1; i &lt;= 5; i++) {\n        if (i == 3) {\n            continue; // Skip printing 3\n        }\n        if (i == 5) {\n            break; // Stop when reaching 5\n        }\n        printf(\"%d\\n\", i);\n    }\n    return 0;\n}",
+    "task": "Write a loop that prints numbers 1–10 but skips 5 and stops at 8."
+  },
+  {
+    "id": 13,
+    "title": "Functions in C",
+    "explanation": "Functions are reusable blocks of code that perform a specific task. They help organize code and make it modular. Functions in C can return values and accept parameters. The `main()` function is the entry point of every C program.",
+    "code_example": "#include &lt;stdio.h&gt;\nvoid greet() {\n    printf(\"Hello from a function!\\n\");\n}\nint main() {\n    greet();\n    return 0;\n}",
+    "task": "Create a function called `sayHello` that prints 'Hello, World!' and call it from `main()`."
+  },
+  {
+    "id": 14,
+    "title": "Function Parameters and Return Values",
+    "explanation": "Functions can take inputs (parameters) and return outputs. This makes them more flexible. Parameters are defined inside parentheses in the function definition, and return values are sent back with the `return` keyword.",
+    "code_example": "#include &lt;stdio.h&gt;\nint add(int a, int b) {\n    return a + b;\n}\nint main() {\n    int sum = add(3, 4);\n    printf(\"Sum: %d\\n\", sum);\n    return 0;\n}",
+    "task": "Write a function `multiply` that takes two integers and returns their product."
+  },
+  {
+    "id": 15,
+    "title": "Variable Scope",
+    "explanation": "Variable scope refers to where a variable can be accessed. Local variables exist only inside the function where they are declared, while global variables are accessible from all functions. Avoid using too many global variables to prevent conflicts.",
+    "code_example": "#include &lt;stdio.h&gt;\nint globalVar = 100; // Global variable\nvoid display() {\n    int localVar = 10; // Local variable\n    printf(\"Local: %d, Global: %d\\n\", localVar, globalVar);\n}\nint main() {\n    display();\n    printf(\"Global from main: %d\\n\", globalVar);\n    return 0;\n}",
+    "task": "Write a program that uses both a local and global variable and prints their values."
+  },
+  {
+    "id": 16,
+    "title": "Arrays in C",
+    "explanation": "Arrays store multiple values of the same type in a single variable. They are zero-indexed, meaning the first element is at index 0. You can loop through arrays to access elements.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int numbers[5] = {1, 2, 3, 4, 5};\n    for (int i = 0; i &lt; 5; i++) {\n        printf(\"%d \", numbers[i]);\n    }\n    return 0;\n}",
+    "task": "Create an array of 7 integers and print them using a `for` loop."
+  },
+  {
+    "id": 17,
+    "title": "Multidimensional Arrays",
+    "explanation": "C supports multidimensional arrays, such as 2D arrays, which can be thought of as tables with rows and columns. They are useful for storing matrix-like data.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int matrix[2][3] = {\n        {1, 2, 3},\n        {4, 5, 6}\n    };\n    for (int i = 0; i &lt; 2; i++) {\n        for (int j = 0; j &lt; 3; j++) {\n            printf(\"%d \", matrix[i][j]);\n        }\n        printf(\"\\n\");\n    }\n    return 0;\n}",
+    "task": "Declare a 3x3 array and print it as a grid."
+  },
+  {
+    "id": 18,
+    "title": "Strings in C",
+    "explanation": "Strings in C are arrays of characters terminated by a null character `\\0`. They can be declared as arrays or using string literals. C provides functions like `strlen`, `strcpy`, and `strcmp` for string operations.",
+    "code_example": "#include &lt;stdio.h&gt;\n#include &lt;string.h&gt;\nint main() {\n    char name[20] = \"Alice\";\n    printf(\"Name: %s\\n\", name);\n    printf(\"Length: %lu\\n\", strlen(name));\n    return 0;\n}",
+    "task": "Write a program that takes a user's name as input and prints its length."
+  },
+  {
+    "id": 19,
+    "title": "Pointers in C",
+    "explanation": "Pointers store memory addresses of variables. They are powerful but require careful handling to avoid errors. You can use the `&` operator to get an address and `*` to access the value at that address.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int x = 42;\n    int *ptr = &x;\n    printf(\"Address: %p\\n\", ptr);\n    printf(\"Value: %d\\n\", *ptr);\n    return 0;\n}",
+    "task": "Create a pointer to an integer, assign it a variable's address, and print the value using the pointer."
+  },
+  {
+    "id": 20,
+    "title": "Pointer Arithmetic",
+    "explanation": "You can perform arithmetic on pointers to navigate through arrays. Incrementing a pointer moves it to the next element in memory. Pointer arithmetic must be done carefully to avoid accessing invalid memory.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    int arr[3] = {10, 20, 30};\n    int *ptr = arr;\n    for (int i = 0; i &lt; 3; i++) {\n        printf(\"%d \", *(ptr + i));\n    }\n    return 0;\n}",
+    "task": "Write a program that uses a pointer to loop through an array and print each element."
+  },
+  {
+    "id": 21,
+    "title": "File Handling Basics",
+    "explanation": "File handling in C allows you to store and retrieve data from files. The standard library provides functions like fopen(), fclose(), fprintf(), fscanf(), fread(), and fwrite(). Files can be opened in different modes (read 'r', write 'w', append 'a', etc.). Always check if the file pointer is NULL after opening, to handle errors.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    FILE *fp = fopen(\"example.txt\", \"w\");\n    if (fp == NULL) {\n        printf(\"Error opening file!\\n\");\n        return 1;\n    }\n    fprintf(fp, \"Hello, File Handling!\\n\");\n    fclose(fp);\n    return 0;\n}",
+    "task": "Write a program that takes user input and saves it to a file called 'notes.txt'."
+  },
+  {
+    "id": 22,
+    "title": "Reading from Files",
+    "explanation": "You can read data from files using fscanf(), fgets(), or fread(). Text files can be read line-by-line or word-by-word. Always close the file after reading. For large data, reading line-by-line with fgets() is efficient.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main() {\n    FILE *fp = fopen(\"example.txt\", \"r\");\n    char buffer[100];\n    if (fp == NULL) {\n        printf(\"File not found!\\n\");\n        return 1;\n    }\n    while (fgets(buffer, sizeof(buffer), fp)) {\n        printf(\"%s\", buffer);\n    }\n    fclose(fp);\n    return 0;\n}",
+    "task": "Create a program that reads and displays the content of 'notes.txt'."
+  },
+  {
+    "id": 23,
+    "title": "Structures in C",
+    "explanation": "Structures allow you to group variables of different types under a single name. They're useful for representing complex data like a record with multiple fields. Members are accessed using the dot operator for normal variables and '-&gt;' for pointers.",
+    "code_example": "#include &lt;stdio.h&gt;\nstruct Student {\n    char name[50];\n    int age;\n    float grade;\n};\nint main() {\n    struct Student s1 = {\"John\", 20, 85.5};\n    printf(\"Name: %s\\nAge: %d\\nGrade: %.2f\\n\", s1.name, s1.age, s1.grade);\n    return 0;\n}",
+    "task": "Define a 'Book' structure with title, author, and price. Create a variable and display its values."
+  },
+  {
+    "id": 24,
+    "title": "Pointers to Structures",
+    "explanation": "Pointers to structures are useful for passing structures to functions efficiently. Use the arrow operator (-&gt;) to access members through a pointer. This avoids copying the entire structure when passed to functions.",
+    "code_example": "#include &lt;stdio.h&gt;\nstruct Point {\n    int x, y;\n};\nint main() {\n    struct Point p1 = {10, 20};\n    struct Point *ptr = &p1;\n    printf(\"X: %d, Y: %d\\n\", ptr-&gt;x, ptr-&gt;y);\n    return 0;\n}",
+    "task": "Write a program that creates a structure for a 'Car' and uses a pointer to display its details."
+  },
+  {
+    "id": 25,
+    "title": "Dynamic Memory Allocation",
+    "explanation": "Dynamic memory allocation allows you to request memory at runtime using malloc(), calloc(), realloc(), and free(). This is useful when you don't know the size of data beforehand. Always free allocated memory to avoid leaks.",
+    "code_example": "#include &lt;stdio.h&gt;\n#include &lt;stdlib.h&gt;\nint main() {\n    int *arr;\n    int n = 5;\n    arr = (int *)malloc(n * sizeof(int));\n    if (arr == NULL) {\n        printf(\"Memory allocation failed!\\n\");\n        return 1;\n    }\n    for (int i = 0; i &lt; n; i++) arr[i] = i * 2;\n    for (int i = 0; i &lt; n; i++) printf(\"%d \", arr[i]);\n    free(arr);\n    return 0;\n}",
+    "task": "Allocate memory for 10 integers, store values, display them, and then free the memory."
+  },
+  {
+    "id": 26,
+    "title": "Linked Lists Basics",
+    "explanation": "A linked list is a dynamic data structure consisting of nodes connected via pointers. Each node contains data and a pointer to the next node. Linked lists are efficient for insertion and deletion compared to arrays.",
+    "code_example": "#include &lt;stdio.h&gt;\n#include &lt;stdlib.h&gt;\nstruct Node {\n    int data;\n    struct Node *next;\n};\nint main() {\n    struct Node *head = NULL;\n    head = (struct Node*)malloc(sizeof(struct Node));\n    head-&gt;data = 10;\n    head-&gt;next = NULL;\n    printf(\"Node data: %d\\n\", head-&gt;data);\n    free(head);\n    return 0;\n}",
+    "task": "Create a linked list of three nodes and display their data."
+  },
+  {
+    "id": 27,
+    "title": "Function Pointers",
+    "explanation": "Function pointers store the address of functions and can be used to call them dynamically. This is useful for implementing callbacks or dynamic function dispatch.",
+    "code_example": "#include &lt;stdio.h&gt;\nvoid greet() { printf(\"Hello!\\n\"); }\nint main() {\n    void (*funcPtr)() = greet;\n    funcPtr();\n    return 0;\n}",
+    "task": "Write a program with two functions and call them using function pointers."
+  },
+  {
+    "id": 28,
+    "title": "Recursion",
+    "explanation": "Recursion occurs when a function calls itself directly or indirectly. Every recursive function must have a base case to prevent infinite loops. Recursion is useful for problems like factorials, Fibonacci sequences, and tree traversal.",
+    "code_example": "#include &lt;stdio.h&gt;\nint factorial(int n) {\n    if (n == 0) return 1;\n    return n * factorial(n - 1);\n}\nint main() {\n    printf(\"Factorial of 5: %d\\n\", factorial(5));\n    return 0;\n}",
+    "task": "Write a recursive function to find the nth Fibonacci number."
+  },
+  {
+    "id": 29,
+    "title": "Command-Line Arguments",
+    "explanation": "C programs can take arguments from the command line using main(int argc, char *argv[]). argc stores the argument count, argv is an array of strings containing the arguments.",
+    "code_example": "#include &lt;stdio.h&gt;\nint main(int argc, char *argv[]) {\n    printf(\"Number of arguments: %d\\n\", argc);\n    for (int i = 0; i &lt; argc; i++) {\n        printf(\"Arg %d: %s\\n\", i, argv[i]);\n    }\n    return 0;\n}",
+    "task": "Write a program that takes a filename from the command line and displays its content."
+  },
+  {
+    "id": 30,
+    "title": "Preprocessor Directives",
+    "explanation": "Preprocessor directives are instructions to the compiler to process the source code before compilation. Common directives include #define, #include, and #ifdef. They can be used for macros, conditional compilation, and including header files.",
+    "code_example": "#include &lt;stdio.h&gt;\n#define PI 3.14159\nint main() {\n    printf(\"Value of PI: %.5f\\n\", PI);\n    return 0;\n}",
+    "task": "Create a macro for the square of a number and use it in your program."
+  }
+],
+ "java": [
+  {
+    "id": 1,
+    "title": "Introduction to Java",
+    "explanation": "Java is a high-level, object-oriented programming language known for its portability across platforms. It runs on the Java Virtual Machine (JVM) and is used for desktop apps, web apps, Android apps, and more.",
+    "code_example": "public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, Java!\");\n    }\n}",
+    "task": "Write a Java program that prints your name to the console."
+  },
+  {
+    "id": 2,
+    "title": "Java Variables and Data Types",
+    "explanation": "Variables store data in Java. Each variable has a data type, such as int, double, char, boolean, or String. Java is statically typed, meaning you must declare the type before use.",
+    "code_example": "public class Variables {\n    public static void main(String[] args) {\n        int age = 20;\n        double height = 1.75;\n        char grade = 'A';\n        boolean isStudent = true;\n        String name = \"Alice\";\n        System.out.println(name + \" is \" + age + \" years old.\");\n    }\n}",
+    "task": "Create variables for your age, height, and favorite color, then print them."
+  },
+  {
+    "id": 3,
+    "title": "Java Operators",
+    "explanation": "Operators are symbols that perform operations on variables and values. Java includes arithmetic, relational, logical, and assignment operators.",
+    "code_example": "public class Operators {\n    public static void main(String[] args) {\n        int a = 10, b = 5;\n        System.out.println(\"Sum: \" + (a + b));\n        System.out.println(\"Equal? \" + (a == b));\n        System.out.println(\"Logical AND: \" + (a &gt; 0 && b &gt; 0));\n    }\n}",
+    "task": "Write a program that uses arithmetic and logical operators to compare two numbers."
+  },
+  {
+    "id": 4,
+    "title": "Java Control Flow - if/else",
+    "explanation": "if-else statements allow conditional execution of code. If the condition evaluates to true, one block executes; otherwise, the other block runs.",
+    "code_example": "public class IfElse {\n    public static void main(String[] args) {\n        int score = 85;\n        if (score &gt;= 90) {\n            System.out.println(\"Grade: A\");\n        } else if (score &gt;= 75) {\n            System.out.println(\"Grade: B\");\n        } else {\n            System.out.println(\"Grade: C\");\n        }\n    }\n}",
+    "task": "Write a Java program that prints 'Pass' if a score is above 50, otherwise 'Fail'."
+  },
+  {
+    "id": 5,
+    "title": "Java Switch Statement",
+    "explanation": "A switch statement evaluates an expression and executes code blocks based on matching cases. It's often used for multiple fixed options.",
+    "code_example": "public class SwitchExample {\n    public static void main(String[] args) {\n        int day = 3;\n        switch(day) {\n            case 1: System.out.println(\"Monday\"); break;\n            case 2: System.out.println(\"Tuesday\"); break;\n            case 3: System.out.println(\"Wednesday\"); break;\n            default: System.out.println(\"Unknown day\");\n        }\n    }\n}",
+    "task": "Create a switch statement that prints the name of the month based on a number (1-12)."
+  },
+  {
+    "id": 6,
+    "title": "Java Loops - for",
+    "explanation": "The for loop runs a block of code a specific number of times. It consists of an initializer, condition, and increment/decrement statement.",
+    "code_example": "public class ForLoop {\n    public static void main(String[] args) {\n        for (int i = 1; i &lt;= 5; i++) {\n            System.out.println(\"Count: \" + i);\n        }\n    }\n}",
+    "task": "Write a for loop that prints all even numbers from 2 to 20."
+  },
+  {
+    "id": 7,
+    "title": "Java Loops - while and do-while",
+    "explanation": "A while loop runs as long as its condition is true. A do-while loop runs at least once, then checks the condition before repeating.",
+    "code_example": "public class WhileLoop {\n    public static void main(String[] args) {\n        int i = 1;\n        while (i &lt;= 3) {\n            System.out.println(\"While loop: \" + i);\n            i++;\n        }\n\n        int j = 1;\n        do {\n            System.out.println(\"Do-while loop: \" + j);\n            j++;\n        } while (j &lt;= 3);\n    }\n}",
+    "task": "Write a while loop that counts down from 10 to 1."
+  },
+  {
+    "id": 8,
+    "title": "Java Arrays",
+    "explanation": "Arrays hold multiple values of the same type in a single variable. They have a fixed size and are accessed by index starting from 0.",
+    "code_example": "public class ArraysExample {\n    public static void main(String[] args) {\n        int[] numbers = {1, 2, 3, 4, 5};\n        System.out.println(\"First number: \" + numbers[0]);\n        for (int num : numbers) {\n            System.out.println(num);\n        }\n    }\n}",
+    "task": "Create an array of 5 favorite fruits and print each one using a loop."
+  },
+  {
+    "id": 9,
+    "title": "Java Methods",
+    "explanation": "Methods are reusable blocks of code that perform a specific task. They can take parameters and return values.",
+    "code_example": "public class MethodsExample {\n    public static void main(String[] args) {\n        greet(\"Alice\");\n    }\n\n    static void greet(String name) {\n        System.out.println(\"Hello, \" + name + \"!\");\n    }\n}",
+    "task": "Write a method that takes two numbers as parameters and returns their sum."
+  },
+  {
+    "id": 10,
+    "title": "Java Classes and Objects",
+    "explanation": "Java is object-oriented, meaning code is organized into classes (blueprints) and objects (instances of classes).",
+    "code_example": "class Car {\n    String model;\n    int year;\n\n    Car(String model, int year) {\n        this.model = model;\n        this.year = year;\n    }\n\n    void displayInfo() {\n        System.out.println(year + \" \" + model);\n    }\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Car car1 = new Car(\"Toyota Camry\", 2020);\n        car1.displayInfo();\n    }\n}",
+    "task": "Create a class for 'Book' with title, author, and year, then create an object and print its details."
+  },
+  {
+    "id": 11,
+    "title": "Java Methods and Parameters",
+    "explanation": "Methods in Java are blocks of code designed to perform specific tasks. You can pass information to methods using parameters, and they can return values. This helps avoid code duplication and improves readability.",
+    "code_example": "public class Main {\n    static int add(int a, int b) {\n        return a + b;\n    }\n    public static void main(String[] args) {\n        int result = add(5, 3);\n        System.out.println(result);\n    }\n}",
+    "task": "Write a method that takes two double values and returns their product."
+  },
+  {
+    "id": 12,
+    "title": "Method Overloading",
+    "explanation": "Java allows multiple methods with the same name but different parameter lists (number or type). This is called method overloading and helps make code flexible.",
+    "code_example": "public class Main {\n    static int multiply(int a, int b) {\n        return a * b;\n    }\n    static double multiply(double a, double b) {\n        return a * b;\n    }\n    public static void main(String[] args) {\n        System.out.println(multiply(2, 3));\n        System.out.println(multiply(2.5, 4.0));\n    }\n}",
+    "task": "Create overloaded methods named 'printInfo' that can accept either a String or an int and print them."
+  },
+  {
+    "id": 13,
+    "title": "Constructors in Java",
+    "explanation": "Constructors are special methods called when an object is created. They initialize object properties. If no constructor is defined, Java provides a default one.",
+    "code_example": "public class Car {\n    String model;\n    Car(String m) {\n        model = m;\n    }\n    public static void main(String[] args) {\n        Car myCar = new Car(\"Toyota\");\n        System.out.println(myCar.model);\n    }\n}",
+    "task": "Create a 'Book' class with a constructor that takes the title and author, then print them."
+  },
+  {
+    "id": 14,
+    "title": "this Keyword",
+    "explanation": "The 'this' keyword refers to the current object in Java. It's useful for distinguishing between instance variables and parameters with the same name.",
+    "code_example": "public class Student {\n    String name;\n    Student(String name) {\n        this.name = name;\n    }\n    public static void main(String[] args) {\n        Student s1 = new Student(\"Alice\");\n        System.out.println(s1.name);\n    }\n}",
+    "task": "Modify the 'Book' class so that it uses 'this' to set the title and author."
+  },
+  {
+    "id": 15,
+    "title": "Static Members",
+    "explanation": "Static variables and methods belong to the class, not specific objects. They can be accessed without creating an instance of the class.",
+    "code_example": "public class MathUtil {\n    static int square(int x) {\n        return x * x;\n    }\n    public static void main(String[] args) {\n        System.out.println(MathUtil.square(5));\n    }\n}",
+    "task": "Create a class with a static variable 'count' that increases every time an object is created."
+  },
+  {
+    "id": 16,
+    "title": "Inheritance Basics",
+    "explanation": "Inheritance lets one class acquire the fields and methods of another. The 'extends' keyword is used to create a subclass from a superclass.",
+    "code_example": "class Animal {\n    void eat() {\n        System.out.println(\"Eating...\");\n    }\n}\nclass Dog extends Animal {\n    void bark() {\n        System.out.println(\"Barking...\");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Dog d = new Dog();\n        d.eat();\n        d.bark();\n    }\n}",
+    "task": "Create a 'Bird' class that inherits from 'Animal' and adds a 'fly' method."
+  },
+  {
+    "id": 17,
+    "title": "Method Overriding",
+    "explanation": "When a subclass provides a specific implementation for a method already in its superclass, it's called method overriding. This allows changing or enhancing inherited behavior.",
+    "code_example": "class Animal {\n    void sound() {\n        System.out.println(\"Some sound\");\n    }\n}\nclass Dog extends Animal {\n    @Override\n    void sound() {\n        System.out.println(\"Bark\");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Animal a = new Dog();\n        a.sound();\n    }\n}",
+    "task": "Override the 'fly' method in 'Bird' to print a unique flying sound."
+  },
+  {
+    "id": 18,
+    "title": "super Keyword",
+    "explanation": "The 'super' keyword refers to the superclass. It's used to call parent methods or constructors.",
+    "code_example": "class Animal {\n    Animal() {\n        System.out.println(\"Animal created\");\n    }\n}\nclass Dog extends Animal {\n    Dog() {\n        super();\n        System.out.println(\"Dog created\");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        new Dog();\n    }\n}",
+    "task": "Create a subclass 'Eagle' that calls the 'Bird' superclass constructor using 'super'."
+  },
+  {
+    "id": 19,
+    "title": "Abstract Classes",
+    "explanation": "Abstract classes cannot be instantiated directly and may have abstract methods without implementation. Subclasses must implement these methods.",
+    "code_example": "abstract class Animal {\n    abstract void sound();\n}\nclass Dog extends Animal {\n    void sound() {\n        System.out.println(\"Bark\");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Animal a = new Dog();\n        a.sound();\n    }\n}",
+    "task": "Create an abstract class 'Shape' with an abstract method 'area', and a 'Circle' class that implements it."
+  },
+  {
+    "id": 20,
+    "title": "Interfaces",
+    "explanation": "Interfaces in Java define a contract of methods that implementing classes must provide. They allow multiple classes to share common behaviors.",
+    "code_example": "interface Animal {\n    void sound();\n}\nclass Dog implements Animal {\n    public void sound() {\n        System.out.println(\"Bark\");\n    }\n}\npublic class Main {\n    public static void main(String[] args) {\n        Animal a = new Dog();\n        a.sound();\n    }\n}",
+    "task": "Create an interface 'Vehicle' with a method 'drive' and implement it in a 'Car' class."
+  }
+],
+ "htmlandcss": [
+  {
+    "id": 1,
+    "title": "Introduction to HTML",
+    "explanation": "HTML (HyperText Markup Language) is the standard language for creating web pages. It uses tags to define elements like headings, paragraphs, links, and images. Every HTML document starts with a `&lt;!DOCTYPE html&gt;` declaration, followed by `&lt;html&gt;`, `&lt;head&gt;`, and `&lt;body&gt;` sections.",
+    "code_example": "&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n  &lt;title&gt;My First Page&lt;/title&gt;\n&lt;/head&gt;\n&lt;body&gt;\n  &lt;h1&gt;Hello, World!&lt;/h1&gt;\n  &lt;p&gt;This is my first HTML page.&lt;/p&gt;\n&lt;/body&gt;\n&lt;/html&gt;",
+    "task": "Create a basic HTML page with a heading and a paragraph describing yourself."
+  },
+  {
+    "id": 2,
+    "title": "HTML Headings and Paragraphs",
+    "explanation": "Headings in HTML range from `&lt;h1&gt;` (largest) to `&lt;h6&gt;` (smallest). Paragraphs are defined using `&lt;p&gt;`. Headings help structure content hierarchically.",
+    "code_example": "&lt;h1&gt;Main Title&lt;/h1&gt;\n&lt;h2&gt;Subtitle&lt;/h2&gt;\n&lt;p&gt;This is a paragraph of text describing the section above.&lt;/p&gt;",
+    "task": "Create a page with a main heading, a subheading, and two paragraphs explaining your favorite hobby."
+  },
+  {
+    "id": 3,
+    "title": "HTML Links",
+    "explanation": "Links are created using the `&lt;a&gt;` tag with the `href` attribute to specify the URL. You can link to external sites or internal pages.",
+    "code_example": "&lt;a href=\"https://www.example.com\"&gt;Visit Example&lt;/a&gt;",
+    "task": "Create a link to your favorite website with descriptive link text."
+  },
+  {
+    "id": 4,
+    "title": "HTML Images",
+    "explanation": "Images are added with the `&lt;img&gt;` tag. Use the `src` attribute for the image path and `alt` text for accessibility.",
+    "code_example": "&lt;img src=\"image.jpg\" alt=\"Description of image\" width=\"300\"&gt;",
+    "task": "Add an image of your choice to your HTML page with appropriate alt text."
+  },
+  {
+    "id": 5,
+    "title": "HTML Lists",
+    "explanation": "HTML supports ordered lists (`&lt;ol&gt;`) and unordered lists (`&lt;ul&gt;`), each containing list items (`&lt;li&gt;`). Ordered lists are numbered, unordered lists have bullet points.",
+    "code_example": "&lt;ul&gt;\n  &lt;li&gt;Apples&lt;/li&gt;\n  &lt;li&gt;Bananas&lt;/li&gt;\n  &lt;li&gt;Cherries&lt;/li&gt;\n&lt;/ul&gt;",
+    "task": "Create both an ordered and unordered list of your top 5 favorite foods."
+  },
+  {
+    "id": 6,
+    "title": "HTML Tables",
+    "explanation": "Tables are created with `&lt;table&gt;`, containing rows `&lt;tr&gt;` and cells `&lt;td&gt;` (data) or `&lt;th&gt;` (header). Use `&lt;thead&gt;`, `&lt;tbody&gt;`, and `&lt;tfoot&gt;` for structure.",
+    "code_example": "&lt;table border=\"1\"&gt;\n  &lt;tr&gt;\n    &lt;th&gt;Name&lt;/th&gt;\n    &lt;th&gt;Age&lt;/th&gt;\n  &lt;/tr&gt;\n  &lt;tr&gt;\n    &lt;td&gt;Alice&lt;/td&gt;\n    &lt;td&gt;25&lt;/td&gt;\n  &lt;/tr&gt;\n&lt;/table&gt;",
+    "task": "Create a table showing 3 friends' names and ages."
+  },
+  {
+    "id": 7,
+    "title": "HTML Forms",
+    "explanation": "Forms collect user input. Use `&lt;form&gt;` with elements like `&lt;input&gt;`, `&lt;textarea&gt;`, `&lt;select&gt;`, and `&lt;button&gt;`. The `action` attribute specifies where to send the data.",
+    "code_example": "&lt;form action=\"submit.php\" method=\"post\"&gt;\n  &lt;label&gt;Name:&lt;/label&gt;\n  &lt;input type=\"text\" name=\"name\"&gt;\n  &lt;button type=\"submit\"&gt;Submit&lt;/button&gt;\n&lt;/form&gt;",
+    "task": "Create a form that asks for a user's name, email, and a short message."
+  },
+  {
+    "id": 8,
+    "title": "CSS Introduction",
+    "explanation": "CSS (Cascading Style Sheets) is used to style HTML elements. You can use inline styles, internal `&lt;style&gt;` blocks, or external `.css` files.",
+    "code_example": "&lt;style&gt;\n  body {\n    background-color: lightblue;\n    font-family: Arial, sans-serif;\n  }\n&lt;/style&gt;",
+    "task": "Change the background color of your HTML page and set a custom font."
+  },
+  {
+    "id": 9,
+    "title": "CSS Selectors",
+    "explanation": "Selectors target HTML elements for styling. Common types include element selectors (`p`), class selectors (`.classname`), and ID selectors (`#idname`).",
+    "code_example": "&lt;style&gt;\n  p {\n    color: blue;\n  }\n  .highlight {\n    background-color: yellow;\n  }\n  #main-title {\n    font-size: 2em;\n  }\n&lt;/style&gt;",
+    "task": "Style all paragraphs in blue, give one paragraph a yellow background, and make your main heading larger."
+  },
+  {
+    "id": 10,
+    "title": "CSS Box Model",
+    "explanation": "Every HTML element is a box made of content, padding, border, and margin. Understanding the box model helps with layout and spacing.",
+    "code_example": "&lt;style&gt;\n  div {\n    width: 200px;\n    padding: 20px;\n    border: 2px solid black;\n    margin: 10px;\n  }\n&lt;/style&gt;\n&lt;div&gt;Box Model Example&lt;/div&gt;",
+    "task": "Create a div with padding, a border, and a margin to see how the box model works."
+  },
+  {
+    "id": 11,
+    "title": "HTML Tables",
+    "explanation": "Tables are used to display data in rows and columns. They are defined with the `&lt;table&gt;` element. Rows are created with `&lt;tr&gt;` and cells with `&lt;td&gt;` (data cell) or `&lt;th&gt;` (header cell). Tables are often styled with CSS to make them more visually appealing.",
+    "code_example": "&lt;table border=\"1\"&gt;\n  &lt;tr&gt;\n    &lt;th&gt;Name&lt;/th&gt;\n    &lt;th&gt;Age&lt;/th&gt;\n  &lt;/tr&gt;\n  &lt;tr&gt;\n    &lt;td&gt;John&lt;/td&gt;\n    &lt;td&gt;25&lt;/td&gt;\n  &lt;/tr&gt;\n&lt;/table&gt;",
+    "task": "Create a table with three columns: Name, Age, and Country. Fill it with data for at least three people."
+  },
+  {
+    "id": 12,
+    "title": "HTML Forms",
+    "explanation": "Forms are used to collect user input. A form is created with the `&lt;form&gt;` tag and contains form controls like `&lt;input&gt;`, `&lt;textarea&gt;`, `&lt;select&gt;`, and `&lt;button&gt;`. The `action` attribute specifies where the form data will be sent.",
+    "code_example": "&lt;form action=\"submit.php\" method=\"post\"&gt;\n  &lt;label for=\"name\"&gt;Name:&lt;/label&gt;\n  &lt;input type=\"text\" id=\"name\" name=\"name\"&gt;\n  &lt;input type=\"submit\" value=\"Submit\"&gt;\n&lt;/form&gt;",
+    "task": "Create a form that collects a user's name, email, and a short message. Add a submit button."
+  },
+  {
+    "id": 13,
+    "title": "CSS Classes and IDs",
+    "explanation": "Classes and IDs help you apply styles to specific elements. A class can be reused for multiple elements, while an ID is unique to one element. In CSS, classes are selected with a dot (.) and IDs with a hash (#).",
+    "code_example": "&lt;style&gt;\n.red-text { color: red; }\n#special { font-weight: bold; }\n&lt;/style&gt;\n&lt;p class=\"red-text\"&gt;This is red text.&lt;/p&gt;\n&lt;p id=\"special\"&gt;This is bold text.&lt;/p&gt;",
+    "task": "Create two paragraphs with different styles using one class and one ID."
+  },
+  {
+    "id": 14,
+    "title": "CSS Pseudo-classes",
+    "explanation": "Pseudo-classes define the special state of an element, such as `:hover` for when the mouse is over an element or `:focus` for when an input is active.",
+    "code_example": "&lt;style&gt;\na:hover { color: red; }\ninput:focus { background-color: yellow; }\n&lt;/style&gt;\n&lt;a href=\"#\"&gt;Hover over me&lt;/a&gt;\n&lt;input type=\"text\" placeholder=\"Focus me\"&gt;",
+    "task": "Create a button that changes background color when hovered over and an input field that changes text color when focused."
+  },
+  {
+    "id": 15,
+    "title": "CSS Display Property",
+    "explanation": "The `display` property determines how an element is displayed. Common values are `block`, `inline`, `inline-block`, `flex`, and `none`. Block elements start on a new line, while inline elements stay in the same line.",
+    "code_example": "&lt;style&gt;\nspan { display: block; }\n&lt;/style&gt;\n&lt;span&gt;This will be block&lt;/span&gt;\n&lt;span&gt;And on a new line&lt;/span&gt;",
+    "task": "Create two divs and make them display side by side using the `inline-block` display value."
+  },
+  {
+    "id": 16,
+    "title": "CSS Positioning",
+    "explanation": "The `position` property controls the positioning of elements. Values include `static`, `relative`, `absolute`, `fixed`, and `sticky`. Absolute positioning places an element relative to its nearest positioned ancestor.",
+    "code_example": "&lt;style&gt;\n.box { position: absolute; top: 20px; left: 30px; background: red; width: 100px; height: 100px; }\n&lt;/style&gt;\n&lt;div class=\"box\"&gt;&lt;/div&gt;",
+    "task": "Create a blue box positioned absolutely 50px from the top and 50px from the left of the page."
+  },
+  {
+    "id": 17,
+    "title": "HTML Audio and Video",
+    "explanation": "HTML provides `&lt;audio&gt;` and `&lt;video&gt;` tags to embed media files. You can use the `controls` attribute to display play, pause, and volume controls for users.",
+    "code_example": "&lt;audio controls&gt;\n  &lt;source src=\"sound.mp3\" type=\"audio/mpeg\"&gt;\n&lt;/audio&gt;\n&lt;video width=\"320\" height=\"240\" controls&gt;\n  &lt;source src=\"movie.mp4\" type=\"video/mp4\"&gt;\n&lt;/video&gt;",
+    "task": "Add an audio and video element to a webpage with sample files and controls."
+  },
+  {
+    "id": 18,
+    "title": "CSS Z-index",
+    "explanation": "The `z-index` property determines the stack order of elements. Elements with higher `z-index` values appear above those with lower values. It only works on positioned elements.",
+    "code_example": "&lt;style&gt;\n.box1 { position: absolute; z-index: 1; background: red; width: 100px; height: 100px; }\n.box2 { position: absolute; z-index: 2; background: blue; width: 100px; height: 100px; top: 50px; left: 50px; }\n&lt;/style&gt;\n&lt;div class=\"box1\"&gt;&lt;/div&gt;\n&lt;div class=\"box2\"&gt;&lt;/div&gt;",
+    "task": "Create two overlapping boxes with different colors and make one appear on top using `z-index`."
+  },
+  {
+    "id": 19,
+    "title": "HTML Meta Tags",
+    "explanation": "Meta tags provide metadata about the HTML document, such as descriptions, keywords, author, and viewport settings. They are placed inside the `&lt;head&gt;` section.",
+    "code_example": "&lt;meta charset=\"UTF-8\"&gt;\n&lt;meta name=\"description\" content=\"Learning HTML and CSS\"&gt;\n&lt;meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"&gt;",
+    "task": "Add meta tags to your HTML page to set the character encoding to UTF-8 and make it mobile-friendly."
+  },
+  {
+    "id": 20,
+    "title": "CSS Transitions",
+    "explanation": "Transitions make changes in CSS properties happen smoothly over a set duration. You can specify properties like `transition-property`, `transition-duration`, and `transition-timing-function`.",
+    "code_example": "&lt;style&gt;\n.box { width: 100px; height: 100px; background: red; transition: background 0.5s; }\n.box:hover { background: blue; }\n&lt;/style&gt;\n&lt;div class=\"box\"&gt;&lt;/div&gt;",
+    "task": "Create a box that changes size smoothly when hovered over."
+  },
+  {
+    "id": 21,
+    "title": "CSS Animations",
+    "explanation": "CSS animations allow you to change styles over time using `@keyframes`. You can set properties like `animation-name`, `animation-duration`, and `animation-iteration-count`.",
+    "code_example": "&lt;style&gt;\n@keyframes move {\n  from { left: 0; }\n  to { left: 100px; }\n}\n.box { position: relative; animation: move 2s infinite alternate; }\n&lt;/style&gt;\n&lt;div class=\"box\"&gt;Move me&lt;/div&gt;",
+    "task": "Create an animation that makes a box bounce left and right continuously."
+  },
+  {
+    "id": 22,
+    "title": "CSS Variables",
+    "explanation": "CSS variables (custom properties) allow you to store values for reuse. They are defined with `--variable-name` and accessed using `var(--variable-name)`.",
+    "code_example": "&lt;style&gt;\n:root { --main-color: blue; }\n.box { background: var(--main-color); }\n&lt;/style&gt;\n&lt;div class=\"box\"&gt;Hello&lt;/div&gt;",
+    "task": "Define a CSS variable for your site’s primary color and use it for a button background."
+  },
+  {
+    "id": 23,
+    "title": "HTML Semantic Elements",
+    "explanation": "Semantic elements like `&lt;header&gt;`, `&lt;footer&gt;`, `&lt;article&gt;`, and `&lt;section&gt;` give meaning to your content, helping with accessibility and SEO.",
+    "code_example": "&lt;header&gt;\n  &lt;h1&gt;My Website&lt;/h1&gt;\n&lt;/header&gt;\n&lt;section&gt;\n  &lt;p&gt;This is a section of content.&lt;/p&gt;\n&lt;/section&gt;",
+    "task": "Create a simple webpage layout using `&lt;header&gt;`, `&lt;main&gt;`, and `&lt;footer&gt;`."
+  },
+  {
+    "id": 24,
+    "title": "CSS Flexbox Basics",
+    "explanation": "Flexbox makes it easy to align and distribute elements in a container. Use `display: flex` on the parent, and control layout with properties like `justify-content` and `align-items`.",
+    "code_example": "&lt;style&gt;\n.container { display: flex; justify-content: center; align-items: center; height: 100vh; }\n.box { background: red; padding: 20px; }\n&lt;/style&gt;\n&lt;div class=\"container\"&gt;\n  &lt;div class=\"box\"&gt;Centered&lt;/div&gt;\n&lt;/div&gt;",
+    "task": "Create three boxes in a row and center them using flexbox."
+  },
+  {
+    "id": 25,
+    "title": "CSS Grid Basics",
+    "explanation": "CSS Grid allows you to create two-dimensional layouts. Use `display: grid` on the parent and define rows and columns with `grid-template-rows` and `grid-template-columns`.",
+    "code_example": "&lt;style&gt;\n.container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }\n.box { background: lightblue; padding: 20px; }\n&lt;/style&gt;\n&lt;div class=\"container\"&gt;\n  &lt;div class=\"box\"&gt;1&lt;/div&gt;\n  &lt;div class=\"box\"&gt;2&lt;/div&gt;\n  &lt;div class=\"box\"&gt;3&lt;/div&gt;\n&lt;/div&gt;",
+    "task": "Create a grid layout with 2 rows and 3 columns containing 6 items."
+  },
+  {
+    "id": 26,
+    "title": "CSS Media Queries",
+    "explanation": "Media queries allow you to apply styles depending on device characteristics, such as screen size. They are essential for responsive design.",
+    "code_example": "&lt;style&gt;\nbody { background: white; }\n@media (max-width: 600px) {\n  body { background: lightgray; }\n}\n&lt;/style&gt;\n&lt;p&gt;Resize the browser to see the background change.&lt;/p&gt;",
+    "task": "Make your webpage text color change when viewed on devices smaller than 500px wide."
+  },
+  {
+    "id": 27,
+    "title": "CSS Shadows",
+    "explanation": "The `box-shadow` property adds shadow effects to elements. You can set horizontal offset, vertical offset, blur radius, and color.",
+    "code_example": "&lt;style&gt;\n.box { width: 100px; height: 100px; background: white; box-shadow: 5px 5px 10px gray; }\n&lt;/style&gt;\n&lt;div class=\"box\"&gt;&lt;/div&gt;",
+    "task": "Add a shadow to a card element on your page."
+  },
+  {
+    "id": 28,
+    "title": "HTML Lists",
+    "explanation": "Lists display items in an ordered or unordered manner. `&lt;ul&gt;` creates unordered lists with bullets, while `&lt;ol&gt;` creates ordered lists with numbers. Each list item is placed inside `&lt;li&gt;` tags.",
+    "code_example": "&lt;ul&gt;\n  &lt;li&gt;Item 1&lt;/li&gt;\n  &lt;li&gt;Item 2&lt;/li&gt;\n&lt;/ul&gt;\n&lt;ol&gt;\n  &lt;li&gt;First&lt;/li&gt;\n  &lt;li&gt;Second&lt;/li&gt;\n&lt;/ol&gt;",
+    "task": "Create an unordered list of at least 5 favorite foods."
+  },
+  {
+    "id": 29,
+    "title": "CSS Background Images",
+    "explanation": "You can set a background image for elements with `background-image`. Use `background-size: cover` or `contain` to control how it fits the element.",
+    "code_example": "&lt;style&gt;\nbody { background-image: url('background.jpg'); background-size: cover; }\n&lt;/style&gt;",
+    "task": "Set a full-page background image for a webpage."
+  },
+  {
+    "id": 30,
+    "title": "CSS Clip-path",
+    "explanation": "The `clip-path` property allows you to define a visible area of an element, creating shapes like circles, polygons, or custom paths.",
+    "code_example": "&lt;style&gt;\n.circle { width: 200px; height: 200px; background: red; clip-path: circle(50%); }\n&lt;/style&gt;\n&lt;div class=\"circle\"&gt;&lt;/div&gt;",
+    "task": "Create an image that is displayed in a circular shape using `clip-path`."
+  }
+],
+ "simplewebcreating": [
+  {
+    "id": 1,
+    "title": "Introduction to HTML & Project Setup",
+    "explanation": "HTML (HyperText Markup Language) is the standard language for structuring web pages. We'll create a personal portfolio website step-by-step. First, set up your project folder with an index.html file for HTML and a style.css file for CSS (styling). HTML defines structure; CSS defines appearance.",
+    "code_example": "&lt;!DOCTYPE html&gt;\n&lt;html lang='en'&gt;\n&lt;head&gt;\n  &lt;meta charset='UTF-8'&gt;\n  &lt;meta name='viewport' content='width=device-width, initial-scale=1.0'&gt;\n  &lt;title&gt;My Portfolio&lt;/title&gt;\n  &lt;link rel='stylesheet' href='style.css'&gt;\n&lt;/head&gt;\n&lt;body&gt;\n  &lt;h1&gt;Welcome to My Portfolio&lt;/h1&gt;\n&lt;/body&gt;\n&lt;/html&gt;",
+    "task": "Create an 'index.html' and 'style.css' file in a new folder. Link the CSS file in your HTML."
+  },
+  {
+    "id": 2,
+    "title": "Basic HTML Structure",
+    "explanation": "HTML is made up of elements, each wrapped in tags like &lt;h1&gt; or &lt;p&gt;. The &lt;head&gt; contains metadata, and &lt;body&gt; contains what users see. We'll add a navigation bar and a hero title.",
+    "code_example": "&lt;body&gt;\n  &lt;header&gt;\n    &lt;nav&gt;\n      &lt;ul&gt;\n        &lt;li&gt;&lt;a href='#'&gt;Home&lt;/a&gt;&lt;/li&gt;\n        &lt;li&gt;&lt;a href='#about'&gt;About&lt;/a&gt;&lt;/li&gt;\n        &lt;li&gt;&lt;a href='#contact'&gt;Contact&lt;/a&gt;&lt;/li&gt;\n      &lt;/ul&gt;\n    &lt;/nav&gt;\n  &lt;/header&gt;\n  &lt;section id='hero'&gt;\n    &lt;h1&gt;Hello, I'm John Doe&lt;/h1&gt;\n    &lt;p&gt;Web Developer & Designer&lt;/p&gt;\n  &lt;/section&gt;\n&lt;/body&gt;",
+    "task": "Add a header with navigation links and a hero section with your name and title."
+  },
+  {
+    "id": 3,
+    "title": "Basic CSS Styling",
+    "explanation": "CSS styles elements using selectors. We’ll style the body, header, and navigation links to make it look cleaner. CSS can use colors, fonts, margins, and padding to improve the look.",
+    "code_example": "body {\n  font-family: Arial, sans-serif;\n  margin: 0;\n  padding: 0;\n  background-color: #f4f4f4;\n}\nnav ul {\n  list-style: none;\n  background: #333;\n  display: flex;\n  padding: 0;\n}\nnav ul li {\n  margin: 0;\n}\nnav ul li a {\n  color: white;\n  padding: 14px 20px;\n  display: block;\n  text-decoration: none;\n}\nnav ul li a:hover {\n  background: #575757;\n}",
+    "task": "Style your navigation bar with a background color and change the link colors."
+  },
+  {
+    "id": 4,
+    "title": "Hero Section Styling",
+    "explanation": "We want the hero section to stand out. We'll add background color and center the text. The hero section is usually the first thing visitors see, so make it engaging.",
+    "code_example": "#hero {\n  text-align: center;\n  padding: 100px 20px;\n  background: #007bff;\n  color: white;\n}\n#hero h1 {\n  font-size: 3rem;\n}\n#hero p {\n  font-size: 1.2rem;\n}",
+    "task": "Center your hero text and give it a background color with white text."
+  },
+  {
+    "id": 5,
+    "title": "Adding an About Section",
+    "explanation": "The About section lets visitors know more about you. Use semantic HTML like &lt;section&gt; and &lt;h2&gt;. We'll add placeholder text for now.",
+    "code_example": "&lt;section id='about'&gt;\n  &lt;h2&gt;About Me&lt;/h2&gt;\n  &lt;p&gt;I am a passionate web developer who loves building beautiful and functional websites.&lt;/p&gt;\n&lt;/section&gt;",
+    "task": "Add an About section below your hero with a heading and a short paragraph."
+  },
+  {
+    "id": 6,
+    "title": "Styling the About Section",
+    "explanation": "We’ll make the About section clean and readable by adding padding and a max-width so text doesn’t stretch too wide.",
+    "code_example": "#about {\n  max-width: 800px;\n  margin: auto;\n  padding: 40px 20px;\n  background: white;\n  box-shadow: 0 0 10px rgba(0,0,0,0.1);\n}\n#about h2 {\n  text-align: center;\n  margin-bottom: 20px;\n}",
+    "task": "Add padding, max-width, and a light shadow to the About section."
+  },
+  {
+    "id": 7,
+    "title": "Adding a Portfolio Section",
+    "explanation": "A portfolio showcases your work. We'll use a grid layout to prepare for project cards.",
+    "code_example": "&lt;section id='portfolio'&gt;\n  &lt;h2&gt;My Work&lt;/h2&gt;\n  &lt;div class='grid'&gt;\n    &lt;div class='card'&gt;Project 1&lt;/div&gt;\n    &lt;div class='card'&gt;Project 2&lt;/div&gt;\n    &lt;div class='card'&gt;Project 3&lt;/div&gt;\n  &lt;/div&gt;\n&lt;/section&gt;",
+    "task": "Add a portfolio section with at least 3 placeholder project cards."
+  },
+  {
+    "id": 8,
+    "title": "Styling the Portfolio Grid",
+    "explanation": "CSS Grid is perfect for displaying projects. We'll style the .grid container and .card items.",
+    "code_example": "#portfolio {\n  padding: 40px 20px;\n  background: #f9f9f9;\n}\n.grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\n  gap: 20px;\n}\n.card {\n  background: white;\n  padding: 20px;\n  box-shadow: 0 0 5px rgba(0,0,0,0.1);\n  text-align: center;\n}",
+    "task": "Style your portfolio with a responsive grid layout and card styling."
+  },
+  {
+    "id": 9,
+    "title": "Adding a Contact Section",
+    "explanation": "We’ll let visitors contact you with a simple form. We'll use &lt;form&gt;, &lt;input&gt;, and &lt;textarea&gt; elements.",
+    "code_example": "&lt;section id='contact'&gt;\n  &lt;h2&gt;Contact Me&lt;/h2&gt;\n  &lt;form&gt;\n    &lt;input type='text' placeholder='Your Name' required&gt;\n    &lt;input type='email' placeholder='Your Email' required&gt;\n    &lt;textarea placeholder='Your Message' required&gt;&lt;/textarea&gt;\n    &lt;button type='submit'&gt;Send&lt;/button&gt;\n  &lt;/form&gt;\n&lt;/section&gt;",
+    "task": "Add a contact section with a form for name, email, and message."
+  },
+  {
+    "id": 10,
+    "title": "Styling the Contact Form",
+    "explanation": "We’ll make the contact form neat by adding padding and making inputs full-width.",
+    "code_example": "#contact {\n  padding: 40px 20px;\n}\nform {\n  max-width: 600px;\n  margin: auto;\n  display: flex;\n  flex-direction: column;\n}\ninput, textarea {\n  margin-bottom: 15px;\n  padding: 10px;\n  font-size: 1rem;\n  border: 1px solid #ccc;\n  border-radius: 5px;\n}\nbutton {\n  padding: 10px;\n  background: #007bff;\n  color: white;\n  border: none;\n  cursor: pointer;\n}\nbutton:hover {\n  background: #0056b3;\n}",
+    "task": "Style your contact form with spacing, padding, and button hover effects."
+  },
+  {
+    "id": 11,
+    "title": "Responsive Layout with Media Queries (Mobile First)",
+    "explanation": "Mobile-first design means you write base styles for small screens, then use media queries to progressively enhance the layout for larger screens. This keeps CSS simpler and results in better performance on mobile.",
+    "code_example": "/* style.css (add near top) */\n:root { --container-padding: 16px; }\nbody { font-size: 16px; }\n/* Mobile (base) */\n.grid { display: block; }\n/* Tablet and up */\n@media (min-width: 600px) {\n  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }\n}\n/* Desktop */\n@media (min-width: 1000px) {\n  .grid { grid-template-columns: repeat(3, 1fr); }\n}",
+    "task": "Change your portfolio `.grid` rules to mobile-first (single column) and add the two media queries above. Test by resizing the browser."
+  },
+  {
+    "id": 12,
+    "title": "Sticky Navigation & Smooth Scroll",
+    "explanation": "Making the nav sticky keeps it visible as users scroll. Smooth scrolling improves user experience when clicking nav links to sections.",
+    "code_example": "&lt;!-- index.html (header/nav) --&gt;\n&lt;header class=\"site-header\"&gt;\n  &lt;nav&gt;\n    &lt;ul&gt;\n      &lt;li&gt;&lt;a href=\"#hero\"&gt;Home&lt;/a&gt;&lt;/li&gt;\n      &lt;li&gt;&lt;a href=\"#about\"&gt;About&lt;/a&gt;&lt;/li&gt;\n      &lt;li&gt;&lt;a href=\"#portfolio\"&gt;Work&lt;/a&gt;&lt;/li&gt;\n      &lt;li&gt;&lt;a href=\"#contact\"&gt;Contact&lt;/a&gt;&lt;/li&gt;\n    &lt;/ul&gt;\n  &lt;/nav&gt;\n&lt;/header&gt;\n\n/* style.css */\n.site-header { position: sticky; top: 0; z-index: 1000; background: rgba(255,255,255,0.95); }\nhtml { scroll-behavior: smooth; }",
+    "task": "Make the header sticky and add `scroll-behavior: smooth` to your CSS. Click nav links to confirm smooth scroll."
+  },
+  {
+    "id": 13,
+    "title": "Responsive Nav: Mobile Hamburger",
+    "explanation": "On small screens, long navs become unusable. Replace the full nav with a hamburger menu (toggle) using minimal JS to add/remove an 'open' class.",
+    "code_example": "&lt;!-- index.html (add button) --&gt;\n&lt;button id=\"nav-toggle\" aria-label=\"Open menu\"&gt;☰&lt;/button&gt;\n\n&lt;!-- script at end of body --&gt;\n&lt;script&gt;\n  const btn = document.getElementById('nav-toggle');\n  const nav = document.querySelector('header nav ul');\n  btn.addEventListener('click', ()=&gt; nav.classList.toggle('open'));\n&lt;/script&gt;\n\n/* style.css */\nnav ul { display: none; }\nnav ul.open { display: block; }\n@media (min-width: 600px) { nav ul { display: flex; } #nav-toggle { display: none; } }",
+    "task": "Add the toggle button and script. Hide full nav on small screens and show the menu when the button is tapped."
+  },
+  {
+    "id": 14,
+    "title": "Typography: REM, Line-height, and Web Fonts",
+    "explanation": "Use `rem` for scalable typography. Set a comfortable `line-height` for readability. Load a web font (Google Fonts) for personality while keeping fallbacks.",
+    "code_example": "&lt;!-- index.html head --&gt;\n&lt;link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap\" rel=\"stylesheet\"&gt;\n\n/* style.css */\nhtml { font-size: 16px; }\nbody { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; }\nh1 { font-size: 2.25rem; }\np { font-size: 1rem; }",
+    "task": "Add the Google Font link to your page and replace font-family in CSS. Adjust heading/p body font sizes using `rem`."
+  },
+  {
+    "id": 15,
+    "title": "CSS Variables & Dark Mode Toggle",
+    "explanation": "CSS custom properties make theme changes easier. Implement a dark mode by toggling a `.dark` class on the `&lt;html&gt;` element (JS).",
+    "code_example": "/* style.css */\n:root { --bg: #ffffff; --fg: #111827; --accent: #007bff; }\nhtml.dark { --bg: #0b1220; --fg: #e6eef8; --accent: #7ab8ff; }\nbody { background: var(--bg); color: var(--fg); }\n\n&lt;!-- small script at end of body --&gt;\n&lt;script&gt;\n  const toggle = document.createElement('button');\n  toggle.textContent = 'Toggle Theme';\n  document.body.prepend(toggle);\n  toggle.addEventListener('click', ()=&gt; document.documentElement.classList.toggle('dark'));\n&lt;/script&gt;",
+    "task": "Add the CSS variables and the JS toggle button. Toggle to see dark mode colors change immediately."
+  },
+  {
+    "id": 16,
+    "title": "Images: Responsive & Optimized (srcset & lazy-loading)",
+    "explanation": "Serve appropriate image sizes with `srcset` and defer off-screen images with `loading=\"lazy\"`. This improves load time and reduces data usage.",
+    "code_example": "&lt;!-- index.html inside a .card --&gt;\n&lt;img src=\"project-400.jpg\"\n     srcset=\"project-400.jpg 400w, project-800.jpg 800w, project-1200.jpg 1200w\"\n     sizes=\"(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 33vw\"\n     alt=\"Project screenshot\"\n     loading=\"lazy\"&gt;",
+    "task": "Add a responsive `img` to a portfolio card using `srcset` and `loading=\"lazy\"`. Test resizing and inspect network requests."
+  },
+  {
+    "id": 17,
+    "title": "Advanced Flexbox: Centering and Responsive Rows",
+    "explanation": "Flexbox is great for one-dimensional layouts. Use `flex-wrap` to let items wrap on small screens and `align`/`justify` properties for centering.",
+    "code_example": "/* style.css */\n.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }\n.tags { display:flex; gap:8px; flex-wrap:wrap; }\n.tag { padding:6px 10px; background:var(--accent); color:#fff; border-radius:6px; font-size:0.9rem; }",
+    "task": "Use flexbox for header layout (logo left, nav right) and make small badges/tags that wrap on narrow screens."
+  },
+  {
+    "id": 18,
+    "title": "Advanced Grid: Masonry-like & Asymmetric Layouts",
+    "explanation": "CSS Grid lets you create asymmetric layouts. Use `grid-auto-rows` and `grid-row: span N` to produce masonry-like effects without JS.",
+    "code_example": "/* style.css for grid cards */\n.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); grid-auto-rows: 10px; gap: 16px; }\n.card { background: #fff; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }\n.card--tall { grid-row: span 30; } /* make tall card */",
+    "task": "Make one portfolio card taller by adding `.card--tall` and observe the asymmetric layout."
+  },
+  {
+    "id": 19,
+    "title": "CSS Transitions & Simple Hover Effects",
+    "explanation": "Use `transition` to smoothly animate property changes like color, transform, or box-shadow on hover for better feel.",
+    "code_example": ".card { transition: transform 250ms ease, box-shadow 250ms ease; }\n.card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(0,0,0,0.12); }\nbutton { transition: background 200ms ease; }",
+    "task": "Add a hover lift effect to `.card` and a subtle hover color change to buttons."
+  },
+  {
+    "id": 20,
+    "title": "CSS Keyframe Animations for Micro-interactions",
+    "explanation": "Keyframes let you animate complex sequences. Use them sparingly for micro-interactions (e.g., button pulse on first load).",
+    "code_example": "@keyframes pulse { 0% { transform: scale(1);} 50% { transform: scale(1.03);} 100% { transform: scale(1);} }\nbutton.pulse { animation: pulse 1200ms ease-in-out; }\n/* add class with JS only once */",
+    "task": "Add a `.pulse` class to your CTA button and use JS to add it once when the page loads."
+  },
+  {
+    "id": 21,
+    "title": "Forms: Client-side Validation & Accessible Labels",
+    "explanation": "Always use `&lt;label&gt;` with `for` for accessibility. Use `required`, `type=email`, and pattern attributes for HTML validation. Enhance UX with JS that shows friendly error messages.",
+    "code_example": "&lt;form id=\"contactForm\"&gt;\n  &lt;label for=\"name\"&gt;Name&lt;/label&gt;\n  &lt;input id=\"name\" name=\"name\" required&gt;\n  &lt;label for=\"email\"&gt;Email&lt;/label&gt;\n  &lt;input id=\"email\" name=\"email\" type=\"email\" required&gt;\n  &lt;button type=\"submit\"&gt;Send&lt;/button&gt;\n&lt;/form&gt;\n\n&lt;script&gt;\n  document.getElementById('contactForm').addEventListener('submit', function(e){\n    if(!this.checkValidity()){ e.preventDefault(); alert('Please fill the form correctly.'); }\n  });\n&lt;/script&gt;",
+    "task": "Update your contact form to include labels, required attributes, and a tiny submit handler that prevents sending when invalid."
+  },
+  {
+    "id": 22,
+    "title": "Progressive Enhancement: Feature Detection and Fallbacks",
+    "explanation": "Use feature detection (JS or CSS) to enable advanced features while providing fallbacks for older browsers. Example: if CSS Grid isn't available, flexbox fallback keeps layout usable.",
+    "code_example": "/* CSS: grid first, fallback via feature query */\n@supports (display: grid) {\n  .grid { display: grid; grid-template-columns: repeat(3, 1fr); }\n}\n@supports not (display: grid) {\n  .grid { display:flex; flex-wrap:wrap; }\n  .grid &gt; * { flex: 1 1 300px; }\n}",
+    "task": "Add an `@supports` block to offer grid layout when available and a flex fallback otherwise."
+  },
+  {
+    "id": 23,
+    "title": "Accessibility Basics (a11y): ARIA, Contrast, Keyboard",
+    "explanation": "Accessibility ensures everyone can use your site. Use semantic tags, proper contrast, focus styles, and `aria-*` attributes where necessary. Ensure nav and forms are keyboard-accessible.",
+    "code_example": "&lt;!-- Accessible nav --&gt;\n&lt;nav role=\"navigation\" aria-label=\"Main\"&gt;\n  &lt;ul&gt;\n    &lt;li&gt;&lt;a href=\"#hero\"&gt;Home&lt;/a&gt;&lt;/li&gt;\n  &lt;/ul&gt;\n&lt;/nav&gt;\n\n/* focus style */\na:focus, button:focus { outline: 3px solid #ffd54f; outline-offset: 3px; }",
+    "task": "Add role/aria-label to your nav, test keyboard-only navigation (Tab key), and ensure focus styles are visible."
+  },
+  {
+    "id": 24,
+    "title": "SEO Basics: Meta Tags & Semantic HTML",
+    "explanation": "SEO improves discoverability. Use a meaningful `&lt;title&gt;`, meta description, semantic tags (article, header, footer), and headings hierarchy. Keep URLs and filenames descriptive.",
+    "code_example": "&lt;!-- index.html head --&gt;\n&lt;title&gt;John Doe — Web Developer&lt;/title&gt;\n&lt;meta name=\"description\" content=\"Portfolio of John Doe — web developer, front-end engineer.\"&gt;\n&lt;link rel=\"canonical\" href=\"https://yourdomain.com/\"&gt;",
+    "task": "Update your `&lt;head&gt;` with a descriptive title and meta description. Replace placeholder texts with your info."
+  },
+  {
+    "id": 25,
+    "title": "Performance: Minify CSS, Defer JS, & Critical CSS",
+    "explanation": "Performance matters. Minify assets, defer non-critical JS, and inline critical CSS for the hero section to speed first paint. Use `rel=\"preload\"` for important fonts or images.",
+    "code_example": "&lt;!-- in head --&gt;\n&lt;link rel=\"preload\" href=\"style.css\" as=\"style\" onload=\"this.rel='stylesheet'\"&gt;\n&lt;noscript&gt;&lt;link rel=\"stylesheet\" href=\"style.css\"&gt;&lt;/noscript&gt;\n\n&lt;!-- at end of body --&gt;\n&lt;script defer src=\"main.js\"&gt;&lt;/script&gt;",
+    "task": "Change your CSS link to the preload pattern above and change any scripts to `defer` or load at the end of the body."
+  },
+  {
+    "id": 26,
+    "title": "Deploying to GitHub Pages (Simple Static Hosting)",
+    "explanation": "GitHub Pages is a free way to host static sites. Push your repo, enable Pages on the repo settings, and point to the `main` or `gh-pages` branch. Use a `CNAME` file for custom domains.",
+    "code_example": "/* Steps (not code): */\n1) git init, git add ., git commit -m \"initial\"\n2) git remote add origin &lt;your-repo-url&gt;\n3) git push -u origin main\n4) In GitHub &gt; Settings &gt; Pages: select branch and save\n\n/* optional CNAME */\n# create CNAME file with yourdomain.com",
+    "task": "Push your project to a new GitHub repo and enable GitHub Pages. Visit the provided URL to see your site live."
+  },
+  {
+    "id": 27,
+    "title": "Contact Form Backend Options (Formspree / Netlify Forms)",
+    "explanation": "Static sites need third-party forms or server endpoints. Formspree and Netlify Forms accept form submissions via POST and email or store them—no server code required.",
+    "code_example": "&lt;!-- Example Formspree form --&gt;\n&lt;form action=\"https://formspree.io/f/YOUR_ID\" method=\"POST\"&gt;\n  &lt;label for=\"email\"&gt;Email&lt;/label&gt;\n  &lt;input id=\"email\" type=\"email\" name=\"email\" required&gt;\n  &lt;button type=\"submit\"&gt;Send&lt;/button&gt;\n&lt;/form&gt;",
+    "task": "Sign up for Formspree (or Netlify), set the form action to the provided endpoint, and test sending a message."
+  },
+  {
+    "id": 28,
+    "title": "Favicons, PWA Basics & Meta for Social Sharing",
+    "explanation": "Add a favicon for brand recognition. Open Graph and Twitter meta tags control how links appear on social. For simple PWA behaviour, add a manifest and service worker later for offline caching.",
+    "code_example": "&lt;!-- head --&gt;\n&lt;link rel=\"icon\" href=\"/favicon.ico\"&gt;\n&lt;meta property=\"og:title\" content=\"John Doe — Web Developer\"&gt;\n&lt;meta property=\"og:description\" content=\"Portfolio of John Doe\"&gt;\n&lt;meta name=\"twitter:card\" content=\"summary_large_image\"&gt;",
+    "task": "Add a `favicon.ico` to your root and include basic Open Graph meta tags in your `&lt;head&gt;`."
+  },
+  {
+    "id": 29,
+    "title": "Final Polish: Testing, Cross-Browser Checks & QA",
+    "explanation": "Test on multiple devices and browsers, check keyboard navigation, run Lighthouse (accessibility, performance, SEO), and fix issues. Ensure images and fonts are optimized and links work.",
+    "code_example": "/* No code: checklist */\n- Test on Chrome, Firefox, Safari\n- Run Lighthouse and fix top 3 issues\n- Validate HTML with W3C validator\n- Check console for errors\n- Ensure forms submit correctly",
+    "task": "Run Lighthouse in Chrome DevTools, address two high-priority issues it detects, and re-run to confirm improvement."
+  },
+  {
+    "id": 30,
+    "title": "Project Wrap-up: README, Share, and Next Steps",
+    "explanation": "Document the project in `README.md`: how to run locally, which features exist, and next improvements (PWA, CMS, more projects). Share the live link and source repo so others can learn from it.",
+    "code_example": "# README.md (example)\n# My Portfolio\n\nA personal portfolio built with HTML & CSS.\n\n## Run locally\n```bash\ngit clone &lt;repo&gt;\ncd repo\nopen index.html # or use a simple server\n```\n\n## Features\n- Responsive layout\n- Contact form via Formspree\n- Dark mode toggle\n\n## Next\n- Add blog with markdown, add animations, add tests",
+    "task": "Create a `README.md` in your repo with the running instructions and deploy link. Share it with a friend and ask for feedback."
+  }
+],
+ "cheatsheetwebdev": [
+  {
+    "id": 1,
+    "title": "Introduction to Web Development",
+    "explanation": "Web development is the process of creating websites or web applications that run in a browser. It has two main parts: Frontend (what users see) and Backend (the server and database). In this course, we will focus on the basics of frontend development — HTML for structure, CSS for styling, and JavaScript for interactivity. By the end, you will be able to create a simple, functional website.",
+    "code_example": "",
+    "task": "Write a short note on what web development is and list the three core frontend technologies."
+  },
+  {
+  "id": 2,
+  "title": "Your First HTML Page",
+  "explanation": "HTML (HyperText Markup Language) is the standard language for structuring web content. A basic HTML file has tags that define elements. The &lt;html&gt; tag wraps everything, &lt;head&gt; contains meta info, and &lt;body&gt; contains the visible content.",
+  "code_example": "&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n  &lt;title&gt;My First Page&lt;/title&gt;\n&lt;/head&gt;\n&lt;body&gt;\n  &lt;h1&gt;Hello World!&lt;/h1&gt;\n&lt;/body&gt;\n&lt;/html&gt;",
+  "task": "Create an HTML file called index.html with a heading that says 'Welcome to My Website'."
+  },
+  {
+    "id": 3,
+    "title": "Adding Paragraphs and Text",
+    "explanation": "Use the &lt;p&gt; tag to add paragraphs of text. You can also use &lt;strong&gt; for bold text and &lt;em&gt; for italics. HTML tags are like instructions telling the browser how to display the text.",
+    "code_example": "&lt;p&gt;This is a paragraph.&lt;/p&gt;\n&lt;p&gt;This is &lt;strong&gt;bold&lt;/strong&gt; and this is &lt;em&gt;italic&lt;/em&gt;.&lt;/p&gt;",
+    "task": "Add two paragraphs to your HTML page: one introducing yourself and one stating why you want to learn web development."
+  },
+  {
+    "id": 4,
+    "title": "Adding Links",
+    "explanation": "Use the &lt;a&gt; tag to create hyperlinks. The href attribute sets the destination URL. You can link to other pages or external websites.",
+    "code_example": "&lt;a href='https://example.com'&gt;Visit Example&lt;/a&gt;",
+    "task": "Add a link to your favorite website in your HTML file."
+  },
+  {
+    "id": 5,
+    "title": "Adding Images",
+    "explanation": "Use the &lt;img&gt; tag to display images. The src attribute sets the file path or URL. The alt attribute describes the image for accessibility.",
+    "code_example": "&lt;img src='image.jpg' alt='A beautiful view'&gt;",
+    "task": "Add an image to your page from the web using a direct image URL."
+  },
+  {
+    "id": 6,
+    "title": "Introduction to CSS",
+    "explanation": "CSS (Cascading Style Sheets) controls the look of HTML elements. You can change colors, fonts, spacing, and layouts. CSS can be added inline, in the &lt;style&gt; tag, or in an external file.",
+    "code_example": "h1 {\n  color: blue;\n  font-family: Arial;\n}",
+    "task": "In your HTML file, use a &lt;style&gt; tag to change your heading color to red."
+  },
+  {
+    "id": 7,
+    "title": "Styling Text",
+    "explanation": "CSS lets you style text with properties like color, font-size, and text-align.",
+    "code_example": "p {\n  color: gray;\n  font-size: 18px;\n  text-align: center;\n}",
+    "task": "Style all paragraphs to have a font size of 18px and text color darkgreen."
+  },
+  {
+    "id": 8,
+    "title": "Changing Backgrounds",
+    "explanation": "You can change an element’s background color or image using background-color or background-image in CSS.",
+    "code_example": "body {\n  background-color: lightyellow;\n}",
+    "task": "Set your webpage’s background color to lightblue."
+  },
+  {
+    "id": 9,
+    "title": "Adding Divisions",
+    "explanation": "The &lt;div&gt; tag is used to group content together. You can style divs separately to create sections of a webpage.",
+    "code_example": "&lt;div style='background-color: lightgray; padding: 20px;'&gt;\n  &lt;h2&gt;About Me&lt;/h2&gt;\n  &lt;p&gt;This is my about section.&lt;/p&gt;\n&lt;/div&gt;",
+    "task": "Create a div section for 'About Me' with a lightgray background."
+  },
+  {
+    "id": 10,
+    "title": "Lists",
+    "explanation": "HTML supports ordered lists (&lt;ol&gt;) and unordered lists (&lt;ul&gt;). List items are wrapped in &lt;li&gt; tags.",
+    "code_example": "&lt;ul&gt;\n  &lt;li&gt;HTML&lt;/li&gt;\n  &lt;li&gt;CSS&lt;/li&gt;\n  &lt;li&gt;JavaScript&lt;/li&gt;\n&lt;/ul&gt;",
+    "task": "Create an unordered list of 3 of your favorite hobbies."
+  },
+  {
+    "id": 11,
+    "title": "Buttons",
+    "explanation": "The &lt;button&gt; tag creates clickable buttons. You can style them with CSS or make them interactive with JavaScript.",
+    "code_example": "&lt;button&gt;Click Me&lt;/button&gt;",
+    "task": "Add a button to your page that says 'Contact Me'."
+  },
+  {
+    "id": 12,
+    "title": "Intro to JavaScript",
+    "explanation": "JavaScript makes web pages interactive. You can add it inside &lt;script&gt; tags. A simple example is showing an alert when a button is clicked.",
+    "code_example": "&lt;button onclick='alert(\"Hello!\")'&gt;Click Me&lt;/button&gt;",
+    "task": "Make your 'Contact Me' button show an alert saying 'Thanks for visiting!' when clicked."
+  },
+  {
+    "id": 13,
+    "title": "Changing Text with JavaScript",
+    "explanation": "You can select elements in JavaScript using document.getElementById or querySelector, and change their content with innerHTML.",
+    "code_example": "&lt;p id='demo'&gt;Old text&lt;/p&gt;\n&lt;script&gt;\n  document.getElementById('demo').innerHTML = 'New text';\n&lt;/script&gt;",
+    "task": "Add a paragraph with an id and use JavaScript to change its text when the page loads."
+  },
+  {
+    "id": 14,
+    "title": "External Files",
+    "explanation": "You can keep HTML, CSS, and JavaScript in separate files for better organization. Link CSS with &lt;link&gt; and JS with &lt;script src=''&gt;.",
+    "code_example": "&lt;link rel='stylesheet' href='styles.css'&gt;\n&lt;script src='script.js'&gt;&lt;/script&gt;",
+    "task": "Create a separate CSS file and link it to your HTML."
+  },
+  {
+    "id": 15,
+    "title": "Putting It All Together",
+    "explanation": "Now combine HTML, CSS, and JavaScript to make a small personal webpage. Include a heading, paragraph, image, list, button, and some interactivity.",
+    "code_example": "",
+    "task": "Build a simple personal webpage using everything you learned in this course."
+  }
+]
+
+
+
+}

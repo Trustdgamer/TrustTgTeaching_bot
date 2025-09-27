@@ -1,0 +1,40 @@
+{
+  "6499793556": {
+    "id": "5w402cbj7",
+    "username": "KallmeTrust",
+    "points": 0,
+    "lastActive": 1754873174835,
+    "usageCount": 22,
+    "coins": 789,
+    "lastLogin": "Fri Sep 19 2025",
+    "premiumUntil": 1755434637323,
+    "premium": {
+      "isPremium": true,
+      "expiresAt": 1758900155172
+    },
+    "badgeExpires": 1755107852998,
+    "badge": "🏅",
+    "lastMysteryBox": 1755021452998
+  },
+  "7121817350": {
+    "id": "xnn0670rg",
+    "username": "",
+    "points": 0,
+    "lastActive": 1754873409485,
+    "displayName": "Trust2",
+    "telegramId": "7121817350",
+    "registeredAt": 1754874171665,
+    "usageCount": 6,
+    "coins": 30,
+    "lastLogin": "Wed Sep 24 2025"
+  },
+  "7358459939": {
+    "id": "7358459939",
+    "username": "SamuelRebix",
+    "name": "Lord-Samuel",
+    "joinDate": "2025-09-21T10:25:22.067Z",
+    "coins": 0,
+    "usageCount": 2,
+    "lastLogin": "Sun Sep 21 2025"
+  }
+}

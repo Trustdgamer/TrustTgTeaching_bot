@@ -1,0 +1,38 @@
+{
+  "6499793556": [
+    {
+      "id": "178f6918-085e-468d-ba12-87d83ac7ed0e",
+      "from": "admin",
+      "subject": "Announcement",
+      "body": "hey fam ❤️‍🩹",
+      "timestamp": 1754874721878,
+      "read": true
+    }
+  ],
+  "7121817350": [
+    {
+      "id": "c0569f45-f975-4ade-86ca-b3f3d7384aae",
+      "from": "admin",
+      "subject": "Announcement",
+      "body": "welcome to trustcodebot",
+      "timestamp": 1754874637272,
+      "read": true
+    },
+    {
+      "id": "be31ef05-8a6a-4cc9-adb0-11a6da0131b0",
+      "from": "admin",
+      "subject": "Announcement",
+      "body": "hey fam ❤️‍🩹",
+      "timestamp": 1754874721882,
+      "read": false
+    },
+    {
+      "id": "ddc2e5e0-8705-42ec-821b-2871a24a5b1f",
+      "from": "admin",
+      "subject": "Announcement",
+      "body": "heyo",
+      "timestamp": 1754929300677,
+      "read": false
+    }
+  ]
+}
