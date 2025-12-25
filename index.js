@@ -4,11 +4,48 @@ const { exec } = require("child_process");
 
 
 const TelegramBot = require('node-telegram-bot-api');
-const Groq = require('groq-sdk');
+//const Groq = require('groq-sdk');
 const fs = require('fs');
 const axios = require('axios');
 const { checkPremiumExpiry } = require('./quizTask'); // adjust path
 // import { exec } from "child_process";
+
+function isPremium(user) {
+  if (!user) return false;
+  if (!user.premium) return false;
+  if (!user.premium.isPremium) return false;
+  if (!user.premium.expiresAt) return false;
+
+  return Date.now() < user.premium.expiresAt;
+}
+
+function getDisplayName(user) {
+    const info = getPremiumInfo(user); // uses our premium helper
+    let badge = "";
+
+    if (info.isPremium) badge += "💎 "; // Premium badge
+    if (user.badge && (!user.badgeExpires || user.badgeExpires > Date.now())) {
+        badge += user.badge + " "; // other badges if any
+    }
+
+    return badge + (user.name || user.displayName || "Unknown");
+}
+
+function formatRemainingTime(ms) {
+  if (ms <= 0) return "Expired";
+
+  const totalSeconds = Math.floor(ms / 1000);
+
+  const days = Math.floor(totalSeconds / (24 * 3600));
+  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+
+
 
 function loadJSON(path) {
   try {
@@ -20,6 +57,8 @@ function loadJSON(path) {
     return {};
   }
 }
+
+
 // Command registry
 const commands = [];
 
@@ -174,12 +213,12 @@ setInterval(cleanupRooms, 5 * 60 * 1000);
 // Save users.json helper (reuse your existing writeJSON)
 
 
-function formatName(user) {
+/*function formatName(user) {
   let badge = "";
   if (user.isPremium && user.premiumExpires > Date.now()) badge += "💎 ";
   if (user.badge && (!user.badgeExpires || user.badgeExpires > Date.now())) badge += user.badge + " ";
   return badge + (user.name || "Unknown");
-}
+}*/
 
 
 const motivationalQuotes = [
@@ -241,9 +280,16 @@ try {
   console.error('❌ Error loading lessons:', err.message);
 }
 
-// ===== Premium Users Storage =====
+/* ===== Premium Users Storage =====
 let premiumUsers = [];
 const premiumFile = './premium.json';
+
+function isPremium(user) {
+  if (!user || !user.premium) return false;
+  return user.premium.isPremium && user.premium.expiresAt > Date.now();
+}
+
+
 
 function loadPremium() {
   try {
@@ -259,9 +305,9 @@ loadPremium();
 
 function isPremium(userId) {
   return premiumUsers.includes(userId);
-}
+}*/
 
-function requirePremium(chatId, userId) {
+/*function requirePremium(chatId, userId) {
   if (!isPremium(userId)) {
     bot.sendMessage(chatId, 
       `🚫 <b>Premium Feature Locked</b>\n\n` +
@@ -275,11 +321,11 @@ function requirePremium(chatId, userId) {
     return false;
   }
   return true;
-}
+}*/
 
 // ===== Bot Setup =====
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+//const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const ADMIN_ID = parseInt(process.env.ADMIN_ID);
 const userProgress = {};
@@ -305,85 +351,7 @@ function notifyUnreadMail(userId, chatId) {
     bot.sendMessage(chatId, `📬 You have ${unreadCount} unread message(s). Use /inbox to read them.`);
   }
 }
-/*const activeSessions = {}; // userId -> { courseKey, lessonIndex, type }
-function sendLesson(chatId, userId) {
-  const session = activeSessions[userId];
-  const course = premiumCourses[session.courseKey];
-  const lesson = course[session.lessonIndex];
-  bot.sendMessage(chatId,
-    `📚 *${lesson.title}*\n\n${lesson.content}\n\n🎥 [Video Link](${lesson.video})`,
-    { parse_mode: "Markdown", disable_web_page_preview: false }
-  );
-}
-// 1️⃣ Keep your normal commands as they are
-registerCommand(/\/time$/, "Show the current server time (UTC)", timeHandler);
-/*registerCommand(/\/profile$/, "Show your profile", profileHandler);
-registerCommand(/\/motivate$/, "Send a motivational quote", motivateHandler);*/
-// ...all other commands
 
-// 2️⃣ Build an AI command registry that references your handlers
-/*const commandRegistry = {
-  time: { handler: timeHandler },
-  profile: { handler: profileHandler },
-  motivate: { handler: motivateHandler },
-  funfact: { handler: funFactHandler },
-  roastcode: { handler: roastHandler },
-  mysterybox: { handler: mysteryBoxHandler },
-  inbox: { handler: inboxHandler },
-  // add any others you want AI to trigger
-};*/
-/*const { OpenAI } = require("openai");
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-async function interpretUserMessage(userId, text) {
-  // Build system prompt describing your bot and its commands
-  const systemPrompt = `
-I am an AI assistant for a coding/learning bot created by Trust. 
-I know all the bot commands and features:
-- Premium courses: start, next lesson, get video links.
-- Leaderboards: show main or weekly leaderboard, show user info.
-- Profile: show user profile.
-- Fun: motivate, fun facts, roasts.
-- Mystery box: open it, show rewards.
-- Inbox: list, read, delete messages.
-- Battle rooms: join, leave, status, timeleft, submit code.
-Always map user's natural text to one of these actions.
-`;
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: text }
-    ],
-    temperature: 0
-  });
-
-  return response.choices[0].message.content;
-}
-bot.on('message', async (msg) => {
-  const text = msg.text?.trim();
-  if (!text) return;
-
-  const userId = msg.from.id.toString();
-
-  // Skip normal commands
-  if (text.startsWith('/')) return;
-
-  try {
-    const commandKey = await interpretUserMessage(userId, text);
-
-    if (commandRegistry[commandKey]) {
-      commandRegistry[commandKey].handler(msg); // trigger the existing handler
-    } else {
-      bot.sendMessage(msg.chat.id, "⚠️ Sorry, I couldn't understand your request. plz inform my owner or use the cmd instead");
-    }
-  } catch (err) {
-    console.error("AI parsing error:", err);
-    bot.sendMessage(msg.chat.id, "⚠️ Something went wrong. Try simpler instructions.");
-  }
-});*/
-// Call this inside your /start handler and/or on any message you want to track user activity
 bot.onText(/\/start$/, (msg) => {
   const userId = msg.from.id.toString();
   const chatId = msg.chat.id;
@@ -518,6 +486,25 @@ const usersPath = './users.json';
 function saveUsers() {
   fs.writeFileSync(usersPath, JSON.stringify(users, null, 2));
 }
+setInterval(() => {
+  let changed = false;
+
+  for (const userId in users) {
+    const user = users[userId];
+
+    if (
+      user.premium &&
+      user.premium.isPremium &&
+      user.premium.expiresAt <= Date.now()
+    ) {
+      user.premium.isPremium = false;
+      changed = true;
+      console.log(`🔻 Premium expired for ${userId}`);
+    }
+  }
+
+  if (changed) saveUsers();
+}, 5 * 60 * 1000);
 
 // /start command
 const REQUIRED_CHANNEL = "@Ttrustbit"; // replace with your channel username
@@ -748,85 +735,121 @@ const premiumPrivileges = [
 function escapeMarkdown(text) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
+
 registerCommand(/\/check/, "Check your profile (coins & premium status)", (msg) => {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-    const user = users[userId];
+  const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  const user = users[userId];
 
-    if (!user) {
-        return bot.sendMessage(chatId, "❌ You are not registered. Please use /start to register first.");
-    }
+  if (!user) {
+    return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
+  }
 
-    const isPremium = user.premiumUntil && user.premiumUntil > Date.now();
+  const isPremium =
+    user.premium &&
+    user.premium.isPremium &&
+    user.premium.expiresAt > Date.now();
 
-    bot.sendMessage(chatId,
-        `📌 <b>Profile</b>\n\n` +
-        `💰 Coins: <b>${user.coins}</b>\n` +
-        `💎 Premium: ${isPremium ? "✅ Yes" : "❌ No"}`,
-        { parse_mode: "HTML" }
-    );
+  let premiumText = "❌ No";
+
+  if (isPremium) {
+    const remainingMs = user.premium.expiresAt - Date.now();
+    premiumText = `✅ Yes\n⏳ <b>Remaining:</b> ${formatRemainingTime(remainingMs)}`;
+  }
+
+  bot.sendMessage(
+    chatId,
+    `📌 <b>Your Profile</b>\n\n` +
+    `💰 Coins: <b>${user.coins || 0}</b>\n` +
+    `💎 Premium: ${premiumText}`,
+    { parse_mode: "HTML" }
+  );
 });
 
-// /profile command handler
+
+
 registerCommand(/\/profile(?:\s+(\S+))?/, "View your profile or another user's profile", (msg, match) => {
   const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
   const fromId = msg.from.id.toString();
   const requestedArg = match[1]?.trim(); // could be ID or username
-    const user = users[userId];
 
-    if (!user) {
-        return bot.sendMessage(chatId, "❌ You are not registered. Please use /start to register first.");
-    }
+  const user = users[fromId];
+  if (!user) {
+    return bot.sendMessage(chatId, "❌ You are not registered. Please use /start to register first.");
+  }
 
+  // Determine target user
   let targetUser;
-
   if (requestedArg) {
     // Search by ID or username
     targetUser = Object.values(users).find(u =>
       u.id === requestedArg ||
       (u.username && u.username.toLowerCase() === requestedArg.toLowerCase())
     );
-
     if (!targetUser) {
       return bot.sendMessage(chatId, `❌ No user found with ID or username "${requestedArg}".`);
     }
   } else {
-    // Default: self profile
-    targetUser = users[fromId];
-    if (!targetUser) {
-      return bot.sendMessage(chatId, `❌ You are not registered yet. Use /start to begin.`);
-    }
+    targetUser = user; // self
   }
 
-  // Emojis for tiers
-  const tierEmojis = {
-    vip: "💎",
-    pro: "🔥",
-    premium: "🌟",
-    legend: "👑",
-    free: "🆓"
-  };
+  // Premium & tier calculation
+  let tier = "free";
+  let tierIcon = "🆓";
+  let premiumText = "❌ No";
 
-  const tier = (targetUser.tier || "free").toLowerCase();
-  const tierIcon = tierEmojis[tier] || "";
+  if (targetUser.premium?.isPremium && targetUser.premium.expiresAt > Date.now()) {
+    const msRemaining = targetUser.premium.expiresAt - Date.now();
+    const daysRemaining = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((msRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((msRemaining % (1000 * 60)) / 1000);
 
-  const nameDisplay = escapeMarkdown(targetUser.name || targetUser.displayName || "Unknown");
-  const usernameDisplay = targetUser.username ? "@" + escapeMarkdown(targetUser.username) : "No username";
-  const joinedDate = targetUser.joinDate ? new Date(targetUser.joinDate).toDateString() : "Unknown";
-  const points = targetUser.points || 0;
+    // Assign tier based on remaining days
+    if (daysRemaining >= 30) {
+      tier = "legend";
+      tierIcon = "👑";
+    } else if (daysRemaining >= 15) {
+      tier = "vip";
+      tierIcon = "💎";
+    } else if (daysRemaining >= 8) {
+      tier = "pro";
+      tierIcon = "🔥";
+    } else {
+      tier = "premium";
+      tierIcon = "🌟";
+    }
 
+    premiumText = `✅ Yes (${daysRemaining}d ${hours}h ${minutes}m ${seconds}s left)`;
+  }
+
+ // Display name/username with premium badge
+let nameDisplay = targetUser.name || targetUser.displayName || "Unknown";
+if (targetUser.premium?.isPremium && targetUser.premium.expiresAt > Date.now()) {
+    nameDisplay = "💎 " + nameDisplay; // Add premium badge
+}
+nameDisplay = escapeMarkdown(nameDisplay);
+
+const usernameDisplay = targetUser.username ? "@" + escapeMarkdown(targetUser.username) : "No username";
+const joinedDate = targetUser.joinDate ? new Date(targetUser.joinDate).toDateString() : "Unknown";
+const coins = targetUser.coins || 0;
+
+
+  // Build profile message
   const profileText =
 `📜 *User Profile*
 ────────────────
 👤 Name: *${nameDisplay}*
 💬 Username: ${usernameDisplay}
-🏆 Points: *${user.coins}*
+🏆 Coins: *${coins}*
 ${tierIcon} Tier: *${tier.toUpperCase()}*
+💎 Premium: ${premiumText}
 📅 Joined: *${joinedDate}*`;
 
   bot.sendMessage(chatId, profileText, { parse_mode: "Markdown" });
 });
+
+
 
 
 
@@ -952,7 +975,7 @@ function splitMessage(text, maxLength = 4000) {
   return parts;
 }
 
-registerCommand(
+/*registerCommand(
   /\/restart$/,
   "Restart the bot process",
   (msg) => {
@@ -967,7 +990,53 @@ registerCommand(
       });
     });
   }
+);*/
+
+registerCommand(
+  /\/premiuminfo/,
+  "Show your premium benefits and expiry",
+  (msg) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    const user = users[userId];
+
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
+    }
+
+    const isPremium =
+      user.premium &&
+      user.premium.isPremium &&
+      user.premium.expiresAt > Date.now();
+
+    if (!isPremium) {
+      return bot.sendMessage(
+        chatId,
+        `💎 You are currently not a Premium member.\n\n` +
+          `🔗 To get premium, use /buypremium <days> or contact admin.`,
+      );
+    }
+
+    const remainingMs = user.premium.expiresAt - Date.now();
+
+    const perks = [
+      "✅ Unlimited AI requests",
+      "✅ Access to coding tutor PRO lessons",
+      "✅ Early access to new features",
+      "✅ 24/7 priority support",
+      "✅ No cooldown on commands",
+    ];
+
+    bot.sendMessage(
+      chatId,
+      `💎 <b>Premium Info</b>\n\n` +
+        `⏳ Remaining Time: ${formatRemainingTime(remainingMs)}\n\n` +
+        `✨ <b>Perks:</b>\n${perks.map(p => `- ${p}`).join("\n")}`,
+      { parse_mode: "HTML" }
+    );
+  }
 );
+
 
 registerCommand(
   /\/update$/,
@@ -990,10 +1059,44 @@ registerCommand(
     });
   }
 );
+const cooldowns = {}; // { userId: timestamp }
+function cooldownNotExpired(userId, seconds = 15) {
+  const now = Date.now();
+
+  if (!cooldowns[userId]) {
+    cooldowns[userId] = now;
+    return false;
+  }
+
+  if (now - cooldowns[userId] < seconds * 1000) {
+    return true;
+  }
+
+  cooldowns[userId] = now;
+  return false;
+}
 
 bot.onText(/^\/nanoai(?:\s+(.+))?/, async (msg, match) => {
+  
   const chatId = msg.chat.id;
-  const text = match[1]; // undefined if only /nano used
+  const userId = msg.from.id.toString();
+  const user = users[userId];
+  const text = match[1];
+
+ // 🚀 PREMIUM PRIORITY
+ // ⏳ Cooldown applies ONLY to free users
+if (!isPremium(user)) {
+  if (cooldownNotExpired(userId, 15)) {
+    return bot.sendMessage(
+      chatId,
+      "⏳ Slow down! Free users can use this every 15 seconds.\n💎 Premium users have instant access."
+    );
+  }
+}
+
+
+  console.log("PREMIUM STATE:", users[userId].premium);
+
 
   const prompt = `my name is TrustBit coding bot. I am a helpful programming assistant created by my lovely owner kallmetrust and Lord Samuel. I love solving coding problems and chatting like a human. I am also here to help us code.`;
 
@@ -1031,7 +1134,7 @@ bot.onText(/^\/nanoai(?:\s+(.+))?/, async (msg, match) => {
 
 // ==================== /mystats ====================
 
-// ===== /myinfo command =====
+// ===== /mystats command =====
 registerCommand(/\/mystats/, "Show your profile stats", (msg) => {
   const userId = msg.from.id.toString();
   const user = users[userId];
@@ -1047,11 +1150,37 @@ registerCommand(/\/mystats/, "Show your profile stats", (msg) => {
   const sortedUsers = Object.values(users).sort((a, b) => (b.coins || 0) - (a.coins || 0));
   const rank = sortedUsers.findIndex(u => u.telegramId === userId || u.id === userId) + 1;
 
-  // Premium status (fix: align with /buypremium storage)
-  let premiumStatus = "❌ Not Premium";
-  if (user.premium && user.premium.isPremium && Date.now() < user.premium.expiresAt) {
-    const daysLeft = Math.ceil((user.premium.expiresAt - Date.now()) / (1000 * 60 * 60 * 24));
-    premiumStatus = `💎 Premium (${daysLeft} day${daysLeft > 1 ? "s" : ""} left)`;
+  // Premium & tier calculation
+  let tier = "free";
+  let tierIcon = "🆓";
+  let premiumText = "❌ Not Premium";
+
+  let nameDisplay = user.name || user.displayName || "Unknown";
+
+  if (user.premium?.isPremium && user.premium.expiresAt > Date.now()) {
+    const msRemaining = user.premium.expiresAt - Date.now();
+    const days = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((msRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((msRemaining % (1000 * 60)) / 1000);
+
+    // Assign tier based on remaining days
+    if (days >= 30) {
+      tier = "legend";
+      tierIcon = "👑";
+    } else if (days >= 15) {
+      tier = "vip";
+      tierIcon = "💎";
+    } else if (days >= 8) {
+      tier = "pro";
+      tierIcon = "🔥";
+    } else {
+      tier = "premium";
+      tierIcon = "🌟";
+    }
+
+    premiumText = `${tierIcon} Premium (${days}d ${hours}h ${minutes}m ${seconds}s left)`;
+    nameDisplay = "💎 " + nameDisplay; // add badge to name
   }
 
   // Badges
@@ -1059,18 +1188,19 @@ registerCommand(/\/mystats/, "Show your profile stats", (msg) => {
 
   const infoMsg = `
 <b>📜 Your Info</b>
-👤 Name: <b>${escapeHTML(user.name || user.displayName || "Unknown")}</b>
+👤 Name: <b>${escapeHTML(nameDisplay)}</b>
 💬 Username: @${user.username || "No username"}
 💰 Coins: <b>${user.coins || 0}</b>
 📅 Joined: <b>${user.joinDate ? new Date(user.joinDate).toDateString() : "Unknown"}</b>
 🔥 Daily Streak: <b>${user.usageCount || 0}</b> days
 🏆 Leaderboard Rank: <b>#${rank}</b>
-${premiumStatus}
+${premiumText}
 🎖 Badges: ${badgeList}
 `;
 
   bot.sendMessage(msg.chat.id, infoMsg, { parse_mode: "HTML" });
 });
+
 
 
 // ===== /reset command =====
@@ -1099,6 +1229,70 @@ registerCommand(/\/reset/, "Reset your current course progress", (msg) => {
   bot.sendMessage(chatId, "🔁 Course reset!");
   bot.sendMessage(chatId, formatLesson(lessons[topic][0]), { parse_mode: "HTML" });
 });
+bot.onText(/^\/reply\s+(\d+)\s+(.+)/, async (msg, match) => {
+  const adminId = msg.from.id.toString();
+
+  if (adminId !== ADMIN_ID.toString()) {
+    return bot.sendMessage(msg.chat.id, "🚫 Admin only command.");
+  }
+
+  const targetUserId = match[1];
+  const replyMessage = match[2];
+
+  try {
+    await bot.sendMessage(
+      targetUserId,
+      `💬 <b>Support Reply</b>\n\n${escapeHTML(replyMessage)}`,
+      { parse_mode: "HTML" }
+    );
+
+    bot.sendMessage(
+      msg.chat.id,
+      `✅ Reply sent to user <code>${targetUserId}</code>.`,
+      { parse_mode: "HTML" }
+    );
+  } catch (err) {
+    bot.sendMessage(
+      msg.chat.id,
+      "❌ Failed to send reply. User may have blocked the bot."
+    );
+  }
+});
+
+bot.onText(/^\/support(?:@[\w_]+)?(?:\s+([\s\S]+))?$/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  const user = users[userId];
+  const message = match[1];
+
+  // 🔍 DEBUG (TEMPORARY)
+  console.log("SUPPORT PREMIUM STATE:", user?.premium);
+
+  if (!isPremium(user)) {
+    return bot.sendMessage(chatId, "🚫 Premium only feature.");
+  }
+
+  if (!message) {
+    return bot.sendMessage(
+      chatId,
+      "❓ Please include a message.\n\nExample:\n/support My bot is broken"
+    );
+  }
+
+  await bot.sendMessage(
+    ADMIN_ID,
+`💎 PREMIUM SUPPORT
+
+🆔 User ID: ${userId}
+📩 Message:
+${message}`
+  );
+
+  bot.sendMessage(chatId, "✅ Support message sent. You’ll get a reply here.");
+});
+
+
+
 
 
 // ===== Bookmarks =====
@@ -1197,8 +1391,16 @@ registerCommand(/\/search(?:\s+(.+))?/, "Search for lessons by keyword", (msg, m
 
 // ===== /run js command (simple sandboxed eval) =====
 registerCommand(/\/run\s+js(?:\s+([\s\S]+))?/, "Run JavaScript code", async (msg, match) => {
-  const chatId = msg.chat.id;
+    const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  const user = users[userId];
+  const text = match[1];
   const code = match[1];
+
+  if (!isPremium(user)) {
+  return bot.sendMessage(chatId, "🚫 Premium only feature.");
+}
+
 
   if (!code) {
     return bot.sendMessage(chatId, "❗ Usage: /run js <your JavaScript code>");
@@ -1981,10 +2183,17 @@ registerCommand(
     const now = Date.now();
     const expireTime = now + days * 24 * 60 * 60 * 1000;
 
-    user.premium = {
+    /*user.premium = {
       isPremium: true,
       expiresAt: expireTime,
-    };
+    };*/
+user.premium = {
+  isPremium: true,
+  expiresAt: expireTime
+};
+
+
+
 
     saveUsers();
 
@@ -2487,16 +2696,36 @@ registerCommand(
 
 
 
-// Leaderboard
+function getLeaderboardScore(user) {
+  const basePoints = user.points || 0;
+
+  if (!user.premium?.isPremium || user.premium.expiresAt <= Date.now()) {
+    return basePoints;
+  }
+
+  const daysLeft = Math.floor(
+    (user.premium.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)
+  );
+
+  let multiplier = 1;
+
+  if (daysLeft >= 30) multiplier = 1.5;
+  else if (daysLeft >= 15) multiplier = 1.3;
+  else if (daysLeft >= 8) multiplier = 1.15;
+  else multiplier = 1.1;
+
+  return Math.floor(basePoints * multiplier);
+}
+
+// ===== Leaderboard =====
 registerCommand(
-  /\/leaderboard$/,                               // regex
-  "Show the top 30 players leaderboard",          // description
-  (msg) => {                                      // handler
+  /\/leaderboard$/,
+  "Show the top 30 players leaderboard",
+  (msg) => {
     const chatId = msg.chat.id;
 
-    // Sort users by points descending
     const sortedUsers = Object.values(users)
-      .sort((a, b) => (b.points || 0) - (a.points || 0))
+      .sort((a, b) => getLeaderboardScore(b) - getLeaderboardScore(a))
       .slice(0, 30);
 
     if (sortedUsers.length === 0) {
@@ -2505,12 +2734,23 @@ registerCommand(
 
     const leaderboardText = sortedUsers
       .map((user, index) => {
-        const displayName =
+        let displayName =
           user.username ? `@${user.username}` :
           user.first_name ? user.first_name :
           `ID:${user.id}`;
 
-        return `${index + 1}. <b>${displayName}</b> — ${user.points || 0} pts`;
+        const isPremium =
+          user.premium?.isPremium && user.premium.expiresAt > Date.now();
+
+        const badge = isPremium ? "💎 " : "";
+
+        const boostedScore = getLeaderboardScore(user);
+        const baseScore = user.points || 0;
+
+        const boostedLabel =
+          boostedScore !== baseScore ? " <i>(boosted)</i>" : "";
+
+        return `${index + 1}. <b>${badge}${displayName}</b> — ${boostedScore} pts${boostedLabel}`;
       })
       .join("\n");
 
@@ -2521,6 +2761,8 @@ registerCommand(
     );
   }
 );
+
+
 
 
 // admins stats
@@ -2651,7 +2893,7 @@ const coupons = [
 ];
 
 const awardedCoupons = readJSON('./coupons.json'); // save awarded coupons history
-registerCommand(
+/*registerCommand(
   /\/profile$/,                      // regex
   "Show your profile info",          // description
   (msg) => {                         // handler
@@ -2677,7 +2919,7 @@ registerCommand(
 
     bot.sendMessage(chatId, profileText, { parse_mode: "HTML" });
   }
-);
+);*/
 
 registerCommand(
   /\/easteregg$/, 
@@ -2720,9 +2962,91 @@ registerCommand(
   }
 });
 
+setInterval(() => {
+  const now = Date.now();
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+
+  Object.entries(users).forEach(([userId, user]) => {
+    // Must be premium
+    if (!user.premium?.isPremium || user.premium.expiresAt <= now) return;
+
+    const lastBonus = user.lastWeeklyBonus || 0;
+    const lastReminder = user.lastWeeklyReminder || 0;
+
+    // Bonus available + reminder not sent yet
+    if (
+      now - lastBonus >= WEEK &&
+      now - lastReminder >= WEEK
+    ) {
+      addMailToUser(userId, {
+        from: "system",
+        subject: "🎁 Weekly Bonus Available",
+        body: "Your weekly Premium bonus is ready! Use /weeklybonus to claim your coins 💎"
+      });
+
+      user.lastWeeklyReminder = now;
+    }
+  });
+
+  saveUsers();
+}, 60 * 60 * 1000); // runs every 1 hour (safe)
+
+
 
 // List of admin user IDs (your Telegram user IDs)
 const adminUserIds = [6499793556];
+
+registerCommand(/\/weeklybonus$/, "Claim weekly premium bonus", (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  const user = users[userId];
+
+  if (!user) {
+    return bot.sendMessage(chatId, "❌ You are not registered yet. Use /start.");
+  }
+
+  // ✅ Premium check (YOUR CURRENT SYSTEM)
+  if (!user.premium?.isPremium || user.premium.expiresAt <= Date.now()) {
+    return bot.sendMessage(chatId, "🚫 Premium only feature.");
+  }
+
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  if (user.lastWeeklyBonus && now - user.lastWeeklyBonus < WEEK) {
+    const remaining = WEEK - (now - user.lastWeeklyBonus);
+
+    const d = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const h = Math.floor((remaining / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((remaining / (1000 * 60)) % 60);
+
+    return bot.sendMessage(
+      chatId,
+      `⏳ Weekly bonus already claimed.\nNext bonus in ${d}d ${h}h ${m}m`
+    );
+  }
+
+  // 🎁 GIVE BONUS
+  const BONUS_COINS = 50;
+  user.coins = (user.coins || 0) + BONUS_COINS;
+  user.lastWeeklyBonus = now;
+
+  saveUsers();
+
+  // 📬 Inbox mail
+  addMailToUser(userId, {
+    from: "system",
+    subject: "🎁 Weekly Premium Bonus",
+    body: `You received ${BONUS_COINS} coins as your weekly Premium bonus 💎`
+  });
+
+  bot.sendMessage(
+    chatId,
+    `🎉 You received *${BONUS_COINS} coins* as your weekly Premium bonus!`,
+    { parse_mode: "Markdown" }
+  );
+});
+
 
 // Command to send announcement
 registerCommand(/\/announce (.+)/,
@@ -3222,6 +3546,33 @@ registerCommand(/\/myinfo$/,
   bot.sendMessage(msg.chat.id, info, { parse_mode: 'HTML', disable_web_page_preview: true });
 });
 
+function generateCertificate(user, courseKey) {
+  const date = new Date().toLocaleDateString();
+  const certId = `${courseKey.toUpperCase()}-${user.id}-${Date.now().toString().slice(-6)}`;
+
+  const name =
+    user.username ? `@${user.username}` :
+    user.first_name ? user.first_name :
+    `User ${user.id}`;
+
+  return `
+🎓 *CERTIFICATE OF COMPLETION*
+
+This certifies that
+
+👤 *${name}*
+
+has successfully completed the
+
+📚 *${courseKey.toUpperCase()} Premium Course*
+
+📅 Date: ${date}
+🆔 Certificate ID: ${certId}
+
+💎 Issued by: Your Premium Learning Program
+  `;
+}
+
 
 // ----------------------------
 // Integration notes (where to call functions)
@@ -3631,76 +3982,148 @@ Success is not just about coding skills — it’s about how you market yourself
 });*/
 
 // ===== Command: /premiumcourse =====
-const activeCourseSessions = {};
-registerCommand(/^\/premiumcourse (.+)$/i,
-  "prem user course",
-   (msg, match) => {
+registerCommand(/\/premiumcourses$/, "List premium courses", (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id.toString();
-  const course = match[1].toLowerCase();
-
   const user = users[userId];
 
-  // Check registration
-  if (!user) {
-    return bot.sendMessage(chatId, "❌ You are not registered.");
+  if (!user?.premium?.isPremium || user.premium.expiresAt < Date.now()) {
+    return bot.sendMessage(chatId,
+      "🚫 Premium only feature.\nUse /buypremium to unlock 💎"
+    );
   }
 
-  // Check premium status
-  if (!user.premium || !user.premium.isPremium || user.premium.expiresAt < Date.now()) {
+  const list = Object.keys(premiumCourses)
+    .map(c => `• <b>${c.toUpperCase()}</b>`)
+    .join("\n");
+
+  bot.sendMessage(chatId,
+    `<b>📚 Premium Courses</b>\n\n${list}\n\nUse:\n<code>/premiumcourse ai</code>`,
+    { parse_mode: "HTML" }
+  );
+});
+
+const activeCourseSessions = {};
+
+registerCommand(/^\/premiumcourse (\w+)$/i, "Start premium course", (msg, match) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  const courseKey = match[1].toLowerCase();
+  const user = users[userId];
+
+  if (!user) return bot.sendMessage(chatId, "❌ You are not registered.");
+
+  if (!user.premium?.isPremium || user.premium.expiresAt < Date.now()) {
+    return bot.sendMessage(chatId,
+      "🚫 Premium only feature.\nUse /buypremium to unlock 💎"
+    );
+  }
+
+  if (!premiumCourses[courseKey]) {
+    return bot.sendMessage(chatId,
+      "❌ Course not found.\nUse /premiumcourses to see available courses."
+    );
+  }
+
+  // Create session
+  activeCourseSessions[userId] = {
+    courseKey,
+    lessonIndex: 0
+  };
+
+  sendLesson(chatId, userId);
+});
+
+registerCommand(/\/prevcourse$/, "Previous premium lesson", (msg) => {
+  const userId = msg.from.id.toString();
+  const chatId = msg.chat.id;
+  const session = activeCourseSessions[userId];
+
+  if (!session || session.lessonIndex === 0) {
+    return bot.sendMessage(chatId, "⚠️ This is the first lesson.");
+  }
+
+  session.lessonIndex--;
+  sendLesson(chatId, userId);
+});
+
+registerCommand(/\/nextprem$/, "Next premium lesson", (msg) => {
+  const userId = msg.from.id.toString();
+  const chatId = msg.chat.id;
+  const session = activeCourseSessions[userId];
+
+  if (!session) {
+    return bot.sendMessage(chatId,
+      "⚠️ No active course.\nUse /premiumcourses to start one."
+    );
+  }
+
+  session.lessonIndex++;
+
+  const course = premiumCourses[session.courseKey];
+  const lesson = course[session.lessonIndex]; // ✅ get the current lesson
+
+  // If no lesson left → course completed
+  if (!lesson) {
+    const user = users[userId];
+    const certificate = generateCertificate(user, session.courseKey);
+
+    delete activeCourseSessions[userId];
+
     return bot.sendMessage(
       chatId,
-      "❌ This course is for *Premium Members Only*.\nUse /buypremium to upgrade.",
+      `🎉 *Course Completed!*\n\n${certificate}`,
       { parse_mode: "Markdown" }
     );
   }
 
-  // Validate course
-  if (!premiumCourses[course]) {
-    return bot.sendMessage(
-      chatId,
-      "❌ Course not found. Available premium courses: ai, blockchain, cybersecurity, insider, videos."
+  // Send the next lesson
+  sendLesson(chatId, userId);
+});
+
+
+/*registerCommand(/\/nextprem$/, "Next premium lesson", (msg) => {
+  const userId = msg.from.id.toString();
+  const chatId = msg.chat.id;
+  const session = activeCourseSessions[userId];
+
+  if (!session) {
+    return bot.sendMessage(chatId,
+      "⚠️ No active course.\nUse /premiumcourses to start one."
     );
   }
 
-  // Build course message
-  let text = `📚 *${course.toUpperCase()} Premium Course:*\n\n`;
-  premiumCourses[course].forEach((lesson, i) => {
-    text += `${i + 1}. *${lesson.title}*\n${lesson.content}\n\n`;
-  });
+  session.lessonIndex++;
 
-  bot.sendMessage(chatId, text, { parse_mode: "Markdown" });
-});
+  const course = premiumCourses[session.courseKey];
+  if (session.lessonIndex >= course.length) {
+    delete activeCourseSessions[userId];
+    return bot.sendMessage(chatId,
+      "🎉 Course completed!\nUse /premiumcourses to start another."
+    );
+  }
 
-bot.onText(/^\/nextprem$/, (msg) => {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
+  
 
-    const session = activeCourseSessions[userId];
-    if (!session) {
-        return bot.sendMessage(chatId, "⚠️ No active course. Start one with /premiumcourse <course>.");
-    }
+  sendLesson(chatId, userId);
+});*/
 
-    const course = premiumCourses[session.courseKey];
-    session.lessonIndex++;
-
-    if (session.lessonIndex >= course.length) {
-        return bot.sendMessage(chatId, `✅ You've finished the course "${session.courseKey}". Start another with /premiumcourse <course>.`);
-    }
-
-    sendLesson(chatId, userId);
-});
 
 function sendLesson(chatId, userId) {
-    const session = activeCourseSessions[userId];
-    const course = premiumCourses[session.courseKey];
-    const lesson = course[session.lessonIndex];
+  const session = activeCourseSessions[userId];
+  if (!session) return;
 
-    bot.sendMessage(chatId,
-        `📚 *${lesson.title}*\n\n${lesson.content}\n\n🎥 [Video Link](${lesson.video})`,
-        { parse_mode: "Markdown", disable_web_page_preview: false }
-    );
+  const course = premiumCourses[session.courseKey];
+  const lesson = course[session.lessonIndex];
+
+  bot.sendMessage(chatId,
+    `📘 <b>${lesson.title}</b>\n\n${lesson.content}\n\n🎥 <a href="${lesson.video}">Watch Video</a>\n\n` +
+    `📍 Lesson ${session.lessonIndex + 1} of ${course.length}\n\n` +
+    `➡️ /nextprem   ⬅️ /prevcourse`,
+    { parse_mode: "HTML", disable_web_page_preview: false }
+  );
 }
+
 
 
 // ===== Helper: Save Premium Data =====

@@ -4,13 +4,13 @@
     "username": "KallmeTrust",
     "points": 0,
     "lastActive": 1754873174835,
-    "usageCount": 22,
-    "coins": 789,
-    "lastLogin": "Fri Sep 19 2025",
+    "usageCount": 25,
+    "coins": 109,
+    "lastLogin": "Wed Dec 24 2025",
     "premiumUntil": 1755434637323,
     "premium": {
       "isPremium": true,
-      "expiresAt": 1758900155172
+      "expiresAt": 1769198531861
     },
     "badgeExpires": 1755107852998,
     "badge": "🏅",
@@ -24,9 +24,14 @@
     "displayName": "Trust2",
     "telegramId": "7121817350",
     "registeredAt": 1754874171665,
-    "usageCount": 6,
-    "coins": 30,
-    "lastLogin": "Wed Sep 24 2025"
+    "usageCount": 12,
+    "coins": 50,
+    "lastLogin": "Thu Dec 25 2025",
+    "premium": {
+      "isPremium": true,
+      "expiresAt": 1766759839899
+    },
+    "lastWeeklyBonus": 1766691881504
   },
   "7358459939": {
     "id": "7358459939",

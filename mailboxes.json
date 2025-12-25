@@ -24,7 +24,7 @@
       "subject": "Announcement",
       "body": "hey fam ❤️‍🩹",
       "timestamp": 1754874721882,
-      "read": false
+      "read": true
     },
     {
       "id": "ddc2e5e0-8705-42ec-821b-2871a24a5b1f",
@@ -32,6 +32,14 @@
       "subject": "Announcement",
       "body": "heyo",
       "timestamp": 1754929300677,
+      "read": true
+    },
+    {
+      "id": "2cdde42f-f4ca-474d-afcc-b7b6d197d79a",
+      "from": "system",
+      "subject": "🎁 Weekly Premium Bonus",
+      "body": "You received 50 coins as your weekly Premium bonus 💎",
+      "timestamp": 1766691882617,
       "read": false
     }
   ]

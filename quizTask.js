@@ -1,27 +1,32 @@
+const { saveUsers } = require('./index'); // adjust path if needed
+const users = require('./users.json');    // or pass users from index.js
+
 function checkPremiumExpiry(bot) {
-    const now = Date.now();
-    let updated = false;
+  const now = Date.now();
+  let updated = false;
 
-    users.forEach((user, id) => {
-        if (user.premium && user.premiumExpiry && now > user.premiumExpiry) {
-            // Remove premium status
-            user.premium = false;
-            user.badge = null;
+  // users is an object, so iterate with for...in
+  for (const userId in users) {
+    const user = users[userId];
 
-            // Optionally remove from premium group
-            if (user.premiumGroupId) {
-                bot.kickChatMember(user.premiumGroupId, user.tgId)
-                   .catch(err => console.error("Error removing from group:", err));
-            }
+    if (user.premium && user.premium.isPremium && user.premium.expiresAt <= now) {
+      // Remove premium status
+      user.premium.isPremium = false;
+      user.badge = null;
 
-            bot.sendMessage(user.tgId, "⚠️ Your premium subscription has expired.");
-            updated = true;
-        }
-    });
+      // Optionally remove from premium group if you store it
+      if (user.premiumGroupId) {
+        bot.kickChatMember(user.premiumGroupId, userId)
+          .catch(err => console.error("Error removing from group:", err));
+      }
 
-    if (updated) {
-        saveUsers(); // Save updated user data
+      // Notify user
+      bot.sendMessage(userId, "⚠️ Your premium subscription has expired.");
+      updated = true;
     }
+  }
+
+  if (updated) saveUsers(); // persist changes
 }
 
 module.exports = { checkPremiumExpiry };
