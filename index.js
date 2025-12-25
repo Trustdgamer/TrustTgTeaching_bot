@@ -7,6 +7,20 @@ const TelegramBot = require('node-telegram-bot-api');
 //const Groq = require('groq-sdk');
 const fs = require('fs');
 const axios = require('axios');
+const express = require('express');
+const app = express();
+
+// Default route
+app.get('/', (req, res) => {
+  res.send('🤖 TrustBuddyBot is alive!');
+});
+
+// Use the PORT Render provides, or fallback to 3000 locally
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🌐 Web service running on port ${PORT}`);
+});
+
 const { checkPremiumExpiry } = require('./quizTask'); // adjust path
 // import { exec } from "child_process";
 
