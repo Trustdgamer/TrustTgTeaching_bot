@@ -1860,7 +1860,7 @@ setInterval(() => checkPremiumExpiry(bot), 60 * 60 * 1000);
 const quizTask = require("./quiz_and_task");
 
 // Quiz commands
-registerCommand(/\/quizmode$/, "Start interactive quiz mode", (msg) => {
+/*registerCommand(/\/quizmode$/, "Start interactive quiz mode", (msg) => {
   const chatId = msg.chat.id;
 
   try {
@@ -1894,7 +1894,7 @@ bot.on("message", (msg) => {
     console.error("Quiz answer error:", err);
     bot.sendMessage(msg.chat.id, "❌ Error processing your quiz answer.");
   }
-});
+});*/
 
 
 // Task
