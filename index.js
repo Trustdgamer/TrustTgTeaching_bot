@@ -2487,13 +2487,13 @@ function isAdmin(id) {
 
 
 // ===== ADMIN GIVE COINS (UNLIMITED + INBOX) =====
+
 registerCommand(
   /^\/admincoins\s+(\w+)\s+(\d+)$/i,
   "Give coins to a user (admin only, unlimited)",
   (msg, match) => {
-
     const chatId = msg.chat.id.toString();
-    const adminIds = ["6499793556"]; // ✅ YOUR Telegram ID
+    const adminIds = ["6499793556"];
     const adminId = msg.from.id.toString();
 
     if (!adminIds.includes(adminId)) {
@@ -2507,7 +2507,7 @@ registerCommand(
       return bot.sendMessage(chatId, "⚠️ Please provide a valid positive amount.");
     }
 
-    // 🔍 Find target user by stored bot ID
+    // 🔍 Find target user in the in-memory `users` object
     let targetUserKey = null;
     for (const tgId in users) {
       if (String(users[tgId].id) === userIdInput) {
@@ -2524,30 +2524,27 @@ registerCommand(
       );
     }
 
-const usersData = readJSON("./users.json") || {};
-const targetUser = usersData[targetUserKey];
+    const targetUser = users[targetUserKey];
 
-targetUser.coins = (targetUser.coins || 0) + amount;
+    // 💰 Add coins directly to in-memory object
+    targetUser.coins = (targetUser.coins || 0) + amount;
 
-addMailToUser(targetUserKey, {
-  from: "admin",
-  subject: "🎁 Coins Reward",
-  body:
-    `Congratulations!\n\n` +
-    `You have received 💰 ${amount} coins from the admin.\n\n` +
-    `🏦 Your new balance is ${targetUser.coins} coins.\n\n` +
-    `Keep learning and earning 🚀`
-});
+    // 📬 Send inbox mail
+    addMailToUser(targetUserKey, {
+      from: "admin",
+      subject: "🎁 Coins Reward",
+      body: `Congratulations!\n\nYou have received 💰 ${amount} coins from the admin.\n\n🏦 Your new balance is ${targetUser.coins} coins.\n\nKeep learning and earning 🚀`
+    });
 
-saveJSON("./users.json", usersData);
-
+    // 🔒 Save updated in-memory object to JSON
+    saveJSON("./users.json", users);
 
     // ✅ Confirm to admin
     bot.sendMessage(
       chatId,
       `✅ <b>${amount}</b> coins sent to <b>${escapeHTML(targetUser.displayName || "User")}</b>\n` +
-      `📩 Inbox notification delivered.\n` +
-      `💰 New Balance: <b>${targetUser.coins}</b>`,
+        `📩 Inbox notification delivered.\n` +
+        `💰 New Balance: <b>${targetUser.coins}</b>`,
       { parse_mode: "HTML" }
     );
   }
