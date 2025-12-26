@@ -1507,42 +1507,42 @@ const battleProblems = [
   {
     id: 'prime-check',
     title: 'Prime Number Check',
-    description: 'Given an integer n, print "YES" if it is prime, otherwise "NO".',
+    description: 'Given an integer n, print "YES" if it is prime, otherwise "NO".\nExample input: 7',
     input: '7',
     expected_output: 'YES',
   },
   {
     id: 'fibonacci',
     title: 'Nth Fibonacci',
-    description: 'Given n, print the nth Fibonacci number (0-indexed).',
+    description: 'Given n, print the nth Fibonacci number (0-indexed).\nExample: n=7 → 13',
     input: '7',
     expected_output: '13',
   },
   {
     id: 'js-scope',
-    title: 'JavaScript Scope',
-    description: 'What will this code output?\n\n```js\nlet a = 10;\n{\n  let a = 20;\n  console.log(a);\n}\nconsole.log(a);\n```',
+    title: 'JavaScript Scope Quiz',
+    description: 'Predict the output:\n```js\nlet a = 10;\n{\n  let a = 20;\n  console.log(a);\n}\nconsole.log(a);\n```',
     input: '',
     expected_output: '20\n10',
   },
   {
     id: 'python-loop',
     title: 'Python Loop Output',
-    description: 'What will this code print?\n\n```python\nfor i in range(3):\n    print(i * "*")\n```',
+    description: 'Predict the output:\n```python\nfor i in range(3):\n    print("*" * i)\n```',
     input: '',
-    expected_output: '\n\n*\n**',
+    expected_output: '\n*\n**',
   },
   {
     id: 'reverse-words',
-    title: 'Reverse Words',
-    description: 'Given a sentence, reverse the order of words.',
+    title: 'Reverse Words in a Sentence',
+    description: 'Given a sentence, reverse the order of words.\nExample: "I love coding" → "coding love I"',
     input: 'I love coding',
     expected_output: 'coding love I',
   },
   {
     id: 'factorial',
-    title: 'Factorial',
-    description: 'Read an integer n and print n!.',
+    title: 'Factorial Calculator',
+    description: 'Read an integer n and print n!.\nExample: 5 → 120',
     input: '5',
     expected_output: '120',
   },
@@ -1556,7 +1556,7 @@ const battleProblems = [
   {
     id: 'trivia-closure',
     title: 'JavaScript Closures',
-    description: 'What is a closure in JavaScript?',
+    description: 'Explain what a closure is in JavaScript.',
     input: '',
     expected_output: 'A closure is a function that remembers its lexical scope even when executed outside of it.',
   },
@@ -1569,40 +1569,77 @@ const battleProblems = [
   },
   {
     id: 'output-js',
-    title: 'Predict Output',
-    description: 'What will this output?\n\n```js\nconsole.log(typeof NaN);\n```',
+    title: 'Predict JS Output',
+    description: 'What will this output?\n```js\nconsole.log(typeof NaN);\n```',
     input: '',
     expected_output: 'number',
   },
   {
     id: 'output-python',
     title: 'Predict Python Output',
-    description: 'What will this print?\n\n```python\nprint("5" * 3)\n```',
+    description: 'What will this print?\n```python\nprint("5" * 3)\n```',
     input: '',
     expected_output: '555',
   },
   {
     id: 'anagram',
     title: 'Check Anagram',
-    description: 'Given two strings, print "YES" if they are anagrams, otherwise "NO".',
+    description: 'Given two strings, print "YES" if they are anagrams, otherwise "NO".\nExample: "listen silent" → "YES"',
     input: 'listen silent',
     expected_output: 'YES',
   },
   {
     id: 'palindrome',
-    title: 'Palindrome Check',
-    description: 'Read a string and print "YES" if it is a palindrome, otherwise "NO".',
+    title: 'Palindrome Checker',
+    description: 'Read a string and print "YES" if it is a palindrome, otherwise "NO".\nExample: "racecar" → "YES"',
     input: 'racecar',
     expected_output: 'YES',
   },
   {
     id: 'capitalize',
     title: 'Capitalize Words',
-    description: 'Given a sentence, capitalize the first letter of each word.',
+    description: 'Given a sentence, capitalize the first letter of each word.\nExample: "hello world" → "Hello World"',
     input: 'hello world',
     expected_output: 'Hello World',
+  },
+  // 💥 NEW CHALLENGES
+  {
+    id: 'array-sum',
+    title: 'Sum of Array Elements',
+    description: 'Given an array of integers, print the sum of its elements.\nExample: [1,2,3,4] → 10',
+    input: '[1,2,3,4]',
+    expected_output: '10',
+  },
+  {
+    id: 'palindrome-number',
+    title: 'Palindrome Number',
+    description: 'Check if a number is a palindrome. Print "YES" or "NO".\nExample: 121 → YES',
+    input: '121',
+    expected_output: 'YES',
+  },
+  {
+    id: 'string-compression',
+    title: 'String Compression',
+    description: 'Compress a string by replacing repeated characters with counts.\nExample: "aaabb" → "a3b2"',
+    input: 'aaabb',
+    expected_output: 'a3b2',
+  },
+  {
+    id: 'matrix-diagonal-sum',
+    title: 'Matrix Diagonal Sum',
+    description: 'Given a 2x2 matrix, print the sum of its main diagonal.\nExample: [[1,2],[3,4]] → 5',
+    input: '[[1,2],[3,4]]',
+    expected_output: '5',
+  },
+  {
+    id: 'fizzbuzz',
+    title: 'FizzBuzz',
+    description: 'Print numbers 1 to n. Replace multiples of 3 with "Fizz", multiples of 5 with "Buzz", multiples of both with "FizzBuzz".',
+    input: '15',
+    expected_output: '1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz',
   }
 ];
+
 
 // helpers to read/write JSON
 
@@ -1695,7 +1732,96 @@ function broadcastNewRooms() {
 }
 
 // /battle start command
-registerCommand(/\/battle create(?:\s+(\S+))?$/, "Start a new battle (optionally password-protected)", (msg, match) => {
+registerCommand(
+  /\/battle create(?:\s+(\S+))?$/,
+  "Start a new battle (optionally password-protected)",
+  (msg, match) => {
+
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    const username = msg.from.username || msg.from.first_name || "Unknown";
+    const password = match[1] || "";
+
+    const data = readBattles();
+    const user = users[userId];
+
+    // 🔒 Prevent duplicate waiting battles
+    const existing = data.battles.find(
+      b => b.host === userId && b.status === "waiting"
+    );
+    if (existing) {
+      return bot.sendMessage(
+        chatId,
+        `⚠️ You already have a waiting battle.\nRoom Code: <b>${existing.code}</b>`,
+        { parse_mode: "HTML" }
+      );
+    }
+
+    // 🎯 Pick random problem
+    const problem = battleProblems[Math.floor(Math.random() * battleProblems.length)];
+
+    // ⏱ Duration rules
+    const isPremium =
+      user?.premium?.isPremium && user.premium.expiresAt > Date.now();
+
+    const durationMinutes = isPremium ? 10 : 5;
+    const durationMs = durationMinutes * 60 * 1000;
+
+    // 🏷 Tier label
+    const tier = isPremium ? "premium" : "free";
+
+    const code = genRoomCode();
+
+    const battle = {
+      code,
+      host: userId,
+      hostName: username,
+
+      password,
+      tier,
+      mode: "classic", // future: blitz, ranked, team
+
+      problem,
+      createdAt: Date.now(),
+      endsAt: Date.now() + durationMs,
+
+      status: "waiting", // waiting | running | finished
+
+      players: {
+        [userId]: {
+          id: userId,
+          name: username,
+          joinedAt: Date.now(),
+          submitted: false,
+          solved: false,
+          time: null
+        }
+      },
+
+      submissions: []
+    };
+
+    data.battles.push(battle);
+    writeBattles(data);
+
+    bot.sendMessage(
+      chatId,
+      `🎯 <b>Battle Created!</b>\n\n` +
+      `🆔 Code: <b>${code}</b>\n` +
+      `${password ? "🔒 Password Protected" : "🔓 Open Room"}\n` +
+      `🏷 Tier: <b>${tier.toUpperCase()}</b>\n` +
+      `📖 Problem: <b>${problem.title}</b>\n` +
+      `⏱ Duration: ${durationMinutes} minutes\n\n` +
+      `👥 Join with:\n<code>/battle join ${code}${password ? " " + password : ""}</code>\n\n` +
+      `▶️ Start battle:\n<code>/battle startgame ${code}</code>`,
+      { parse_mode: "HTML" }
+    );
+
+    broadcastNewRooms();
+  }
+);
+
+/*registerCommand(/\/battle create(?:\s+(\S+))?$/, "Start a new battle (optionally password-protected)", (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const username = msg.from.username || msg.from.first_name || "Unknown";
@@ -1753,7 +1879,7 @@ registerCommand(/\/battle create(?:\s+(\S+))?$/, "Start a new battle (optionally
 
   // notify global room list
   broadcastNewRooms();
-});
+});*/
 
 registerCommand(
   /^\/help$/,
@@ -1789,7 +1915,7 @@ registerCommand(
 
 
 // Join battle room (limit 10 max)
-registerCommand(/\/battle join (\S+)(?:\s+(\S+))?$/, "Join a battle room", (msg, match) => {
+/*registerCommand(/\/battle join (\S+)(?:\s+(\S+))?$/, "Join a battle room", (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const username = msg.from.username || msg.from.first_name || "Unknown";
@@ -1836,7 +1962,76 @@ registerCommand(/\/battle join (\S+)(?:\s+(\S+))?$/, "Join a battle room", (msg,
   if (battle.host !== userId) {
     bot.sendMessage(battle.host, `👤 ${username} joined your battle <b>${code}</b>.`, { parse_mode: "HTML" });
   }
-});
+});*/
+
+// ===== Battle Join (Pro version) =====
+registerCommand(
+  /\/battle join (\S+)(?:\s+(\S+))?$/,
+  "Join a battle room",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id.toString();
+    const username = msg.from.username || msg.from.first_name || "Unknown";
+
+    const code = match[1];
+    const passwordAttempt = match[2] || "";
+
+    const data = readBattles();
+    const battle = data.battles.find(b => b.code === code);
+
+    if (!battle) {
+      return bot.sendMessage(chatId, `❌ Room code <b>${code}</b> not found.`, { parse_mode: "HTML" });
+    }
+
+    if (battle.status !== "waiting") {
+      return bot.sendMessage(chatId, `⚠️ Room <b>${code}</b> has already started or finished.`, { parse_mode: "HTML" });
+    }
+
+    if (battle.password && battle.password !== passwordAttempt) {
+      return bot.sendMessage(chatId, `🔒 Incorrect password for room <b>${code}</b>.`, { parse_mode: "HTML" });
+    }
+
+    if (Object.keys(battle.players).length >= 10) {
+      return bot.sendMessage(chatId, `❌ Room <b>${code}</b> is full (max 10 players).`, { parse_mode: "HTML" });
+    }
+
+    if (battle.players[userId]) {
+      return bot.sendMessage(chatId, `❌ You already joined room <b>${code}</b>.`, { parse_mode: "HTML" });
+    }
+
+    // Add player to the battle
+    const user = users[userId];
+    const badge = (user?.premium?.isPremium && user.premium.expiresAt > Date.now()) ? "💎 " : "";
+    
+    battle.players[userId] = {
+      id: userId,
+      name: username,
+      badge,
+      submitted: false,
+      solved: false,
+      time: null,
+      joinedAt: Date.now()
+    };
+
+    writeBattles(data);
+
+    // Confirmation message to the joining player
+    bot.sendMessage(chatId, `✅ You joined the battle room <b>${code}</b>! ${badge}`, { parse_mode: "HTML" });
+
+    // Notify host
+    if (battle.host !== userId) {
+      bot.sendMessage(battle.host, `👤 ${badge}${username} joined your battle <b>${code}</b>.`, { parse_mode: "HTML" });
+    }
+
+    // Notify all other players (excluding the joining user and host)
+    Object.keys(battle.players).forEach(pid => {
+      if (pid !== userId && pid !== battle.host) {
+        bot.sendMessage(pid, `👤 ${badge}${username} joined your battle <b>${code}</b>.`, { parse_mode: "HTML" });
+      }
+    });
+  }
+);
+
 
 
 const PREMIUM_GROUP_ID = -1002984807954;
@@ -2032,78 +2227,74 @@ function isAdmin(id) {
   return ADMIN_IDS.has(String(id)) || ADMIN_IDS.has(Number(id));
 }
 
-// Listen directly (no registerCommand wrapper)
-/*bot.onText(/^\/giftcoins(?:@\w+)?\s+(\S+)\s+(\d+)$/i, async (msg, match) => {
-  const chatId = msg.chat.id;
-  try {
-    const senderId = msg.from.id;
-    // 1) admin check
-    if (!isAdmin(senderId)) {
-      console.log(`/giftcoin attempt by non-admin: ${senderId}`);
+
+// ===== ADMIN GIVE COINS (UNLIMITED + INBOX) =====
+registerCommand(
+  /^\/admincoins\s+(\w+)\s+(\d+)$/i,
+  "Give coins to a user (admin only, unlimited)",
+  (msg, match) => {
+
+    const chatId = msg.chat.id.toString();
+    const adminIds = ["6499793556"]; // ✅ YOUR Telegram ID
+    const adminId = msg.from.id.toString();
+
+    if (!adminIds.includes(adminId)) {
       return bot.sendMessage(chatId, "🚫 You are not authorized to use this command.");
     }
 
-    // 2) parse args
-    const userIdInput = match[1].trim(); // could be bot-generated id or @username
+    const userIdInput = match[1].trim();
     const amount = parseInt(match[2], 10);
+
     if (isNaN(amount) || amount <= 0) {
-      return bot.sendMessage(chatId, "⚠️ Please provide a valid positive amount. Example: /giftcoin USERID 100");
+      return bot.sendMessage(chatId, "⚠️ Please provide a valid positive amount.");
     }
 
-    // 3) find target user (support numeric bot-id OR @username)
-    let targetKey = null;
-    for (const key of Object.keys(users || {})) {
-      const u = users[key];
-      // match by stored numeric id
-      if (String(u.id) === String(userIdInput)) {
-        targetKey = key;
-        break;
-      }
-      // match by username (allow input "@name" or "name")
-      const plainInput = userIdInput.startsWith("@") ? userIdInput.slice(1) : userIdInput;
-      if (u.username && u.username.toLowerCase() === plainInput.toLowerCase()) {
-        targetKey = key;
-        break;
-      }
-      // also accept when user's telegram id (key) equals input
-      if (String(key) === String(userIdInput)) {
-        targetKey = key;
+    // 🔍 Find target user by stored bot ID
+    let targetUserKey = null;
+    for (const tgId in users) {
+      if (String(users[tgId].id) === userIdInput) {
+        targetUserKey = tgId;
         break;
       }
     }
 
-    if (!targetKey) {
-      return bot.sendMessage(chatId, `❌ No user found with ID/username: ${userIdInput}`);
+    if (!targetUserKey) {
+      return bot.sendMessage(
+        chatId,
+        `❌ No user found with ID: <code>${userIdInput}</code>`,
+        { parse_mode: "HTML" }
+      );
     }
 
-    // 4) update coins and persist
-    users[targetKey].coins = (users[targetKey].coins || 0) + amount;
+    const targetUser = users[targetUserKey];
 
-    try {
-      // saveUsers() in your code is probably synchronous; if it's async, await it
-      if (typeof saveUsers === "function") {
-        const saved = saveUsers(); // keep same call as in your codebase
-        if (saved && saved.then) await saved;
-      }
-    } catch (e) {
-      console.error("Error saving users after gifting:", e);
-      // continue — we still updated in memory
-    }
+    // 💰 Unlimited coin mint
+    targetUser.coins = (targetUser.coins || 0) + amount;
 
-    const display = users[targetKey].displayName || users[targetKey].username || `ID:${users[targetKey].id}`;
-    const newBalance = users[targetKey].coins;
+    // 📬 Send inbox mail to user
+    addMailToUser(targetUserKey, {
+      from: "admin",
+      subject: "🎁 Coins Reward",
+      body:
+        `Congratulations!\n\n` +
+        `You have received 💰 ${amount} coins from the admin.\n\n` +
+        `🏦 Your new balance is ${targetUser.coins} coins.\n\n` +
+        `Keep learning and earning 🚀`
+    });
 
-    console.log(`/giftcoins: admin ${senderId} gave ${amount} to ${display}`);
+    saveUsers();
 
-    return bot.sendMessage(
+    // ✅ Confirm to admin
+    bot.sendMessage(
       chatId,
-      `✅ Gifted ${amount} coins to ${display} (ID: ${users[targetKey].id}).\nNew balance: ${newBalance} coins.`
+      `✅ <b>${amount}</b> coins sent to <b>${escapeHTML(targetUser.displayName || "User")}</b>\n` +
+      `📩 Inbox notification delivered.\n` +
+      `💰 New Balance: <b>${targetUser.coins}</b>`,
+      { parse_mode: "HTML" }
     );
-  } catch (err) {
-    console.error("Error in /giftcoins handler:", err);
-    return bot.sendMessage(chatId, "❌ An error occurred while processing the command. Check the bot logs.");
   }
-});*/
+);
+
 
 // ===== GIFT COINS (Admin only) =====
 registerCommand(
@@ -2297,7 +2488,7 @@ setInterval(() => quizTask.checkPremiumExpiry(bot), 60 * 60 * 1000);
 
 
 // Start battle game (host or any player) — need minimum 2 players
-registerCommand(/^\/battle startgame(?: (\w{5,6}))?$/i, "Start a battle game with the provided room code", (msg, match) => {
+/*registerCommand(/^\/battle startgame(?: (\w{5,6}))?$/i, "Start a battle game with the provided room code", (msg, match) => {
   const chatId = msg.chat.id;
   const code = match[1] ? match[1].trim().toUpperCase() : null;
 
@@ -2384,10 +2575,110 @@ registerCommand(/^\/battle startgame(?: (\w{5,6}))?$/i, "Start a battle game wit
       { parse_mode: 'HTML' }
     );
   }, battle.endsAt - now);
-});
+});*/
 
-
+// ===== Battle Start Game (Pro Version) =====
 registerCommand(
+  /^\/battle startgame(?: (\w{5,6}))?$/i,
+  "Start a battle game with the provided room code",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const code = match[1] ? match[1].trim().toUpperCase() : null;
+
+    if (!code) {
+      return bot.sendMessage(
+        chatId,
+        '⚠️ Please provide the 6-letter Battle Room Code.\nUsage: /battle startgame ROOMCODE'
+      );
+    }
+
+    const data = readBattles();
+    if (!data || !Array.isArray(data.battles)) {
+      return bot.sendMessage(chatId, '❌ Error loading battles.');
+    }
+
+    const battle = data.battles.find(b => String(b.code).trim().toUpperCase() === code);
+    if (!battle) return bot.sendMessage(chatId, '❌ Battle not found.');
+
+    if (battle.status === 'running') return bot.sendMessage(chatId, '⚠️ Battle already running.');
+    if (battle.status === 'finished') return bot.sendMessage(chatId, '⚠️ Battle already finished.');
+    if (Object.keys(battle.players).length < 2) return bot.sendMessage(chatId, '❌ Need at least 2 players to start.');
+
+    // Start the battle
+    battle.status = 'running';
+    const now = Date.now();
+    battle.endsAt = now + (battle.durationMs || 10 * 60 * 1000);
+
+    writeBattles(data);
+
+    // Notify each player privately with badges
+    Object.values(battle.players).forEach(p => {
+      const user = users[p.id];
+      const badge = (user?.premium?.isPremium && user.premium.expiresAt > Date.now()) ? '💎 ' : '';
+      bot.sendMessage(
+        p.id,
+        `🏁 <b>Battle Started!</b>\n` +
+        `🔑 Room: <b>${code}</b>\n` +
+        `📌 Problem: <b>${battle.problem.title}</b>\n\n` +
+        `${battle.problem.description}\n\n` +
+        `➡️ Submit your answer with:\n<code>/battle submit ${code} &lt;your-output&gt;</code>\n\n` +
+        `⏳ Time remaining: <b>${Math.ceil((battle.endsAt - now) / 1000)} seconds</b>\n` +
+        `✨ Badge: ${badge || 'None'}`,
+        { parse_mode: 'HTML' }
+      ).catch(() => {});
+    });
+
+    // Announce in group
+    bot.sendMessage(
+      chatId,
+      `🏁 <b>Battle Started!</b>\n` +
+      `🔑 Room: <b>${code}</b>\n` +
+      `📌 Problem: <b>${battle.problem.title}</b>\n\n` +
+      `👥 Players: ${Object.values(battle.players).map(p => {
+        const user = users[p.id];
+        const badge = (user?.premium?.isPremium && user.premium.expiresAt > Date.now()) ? '💎 ' : '';
+        return `${badge}${p.name}`;
+      }).join(', ')}\n\n` +
+      `🔥 Good luck to all players!`,
+      { parse_mode: 'HTML' }
+    );
+
+    // Schedule end of battle
+    setTimeout(() => {
+      const d = readBattles();
+      const b = d.battles.find(x => String(x.code).trim().toUpperCase() === code);
+      if (!b || b.status === 'finished') return;
+
+      b.status = 'finished';
+
+      const leaderboard = readLeaderboard();
+      Object.values(b.players).forEach(p => {
+        if (p.solved) leaderboard.scores[p.id] = (leaderboard.scores[p.id] || 0) + 10;
+      });
+
+      writeLeaderboard(leaderboard);
+      writeBattles(d);
+
+      // Announce results
+      bot.sendMessage(
+        chatId,
+        `⏹️ <b>Battle ${code} Ended!</b>\n\n` +
+        Object.values(b.players)
+          .map(p => {
+            const user = users[p.id];
+            const badge = (user?.premium?.isPremium && user.premium.expiresAt > Date.now()) ? '💎 ' : '';
+            return `👤 ${badge}${p.name} — ${p.solved ? '✅ Solved' : '❌ Not solved'}`;
+          })
+          .join('\n'),
+        { parse_mode: 'HTML' }
+      );
+    }, battle.endsAt - now);
+  }
+);
+
+
+
+/*registerCommand(
   /^\/battle setsettings (\w{5,6}) (\d+)(?:m|M|min|MIN)? (\d+)(?:q|Q)?(?: (\d+)(?:s|S|sec|SEC)?)?$/,
   "Set battle settings (admin only): duration, question count, per-question time",
   (msg, match) => {
@@ -2442,7 +2733,66 @@ registerCommand(
       { parse_mode: "HTML" }
     );
   }
+);*/
+
+// ===== Battle Settings Command (Admin only) =====
+registerCommand(
+  /^\/battle setsettings (\w{5,6}) (\d+)(?:m|M|min|MIN)? (\d+)(?:q|Q)?(?: (\d+)(?:s|S|sec|SEC)?)?$/,
+  "Set battle settings (admin only): duration, question count, per-question time",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+
+    if (!match) {
+      return bot.sendMessage(
+        chatId,
+        `⚙️ <b>Usage:</b>\n` +
+        `<code>/battle setsettings CODE DURATIONmin QUESTIONS [SECONDS]</code>\n\n` +
+        `Example:\n<code>/battle setsettings ABC123 5m 10q 30s</code>`,
+        { parse_mode: "HTML" }
+      );
+    }
+
+    const code = match[1].toUpperCase();
+    const durationMinutes = parseInt(match[2]);
+    const questionCount = parseInt(match[3]);
+    const perQuestionSeconds = match[4] ? parseInt(match[4]) : null;
+
+    const data = readBattles();
+    const battle = data.battles.find(b => b.code === code);
+
+    if (!battle) return bot.sendMessage(chatId, "❌ Battle not found.");
+    if (battle.host !== userId && !ADMIN.includes(userId.toString())) {
+      return bot.sendMessage(chatId, "🚫 Only the battle host or admin can change settings.");
+    }
+    if (battle.status !== "waiting") return bot.sendMessage(chatId, "⚠️ Cannot change settings after the battle has started.");
+
+    // Validate inputs
+    if (durationMinutes <= 0 || questionCount <= 0) {
+      return bot.sendMessage(chatId, "❌ Duration and question count must be positive numbers.");
+    }
+    if (perQuestionSeconds !== null && perQuestionSeconds <= 0) {
+      return bot.sendMessage(chatId, "❌ Per-question time must be a positive number.");
+    }
+
+    // Save settings
+    battle.durationMs = durationMinutes * 60 * 1000;
+    battle.questionCount = questionCount;
+    if (perQuestionSeconds !== null) battle.perQuestionTimeSec = perQuestionSeconds;
+
+    writeBattles(data);
+
+    bot.sendMessage(
+      chatId,
+      `✅ <b>Battle ${code} settings updated!</b>\n\n` +
+      `🕒 Duration: <b>${durationMinutes} minute(s)</b>\n` +
+      `❓ Number of Questions: <b>${questionCount}</b>\n` +
+      (perQuestionSeconds ? `⏳ Per Question Time: <b>${perQuestionSeconds} seconds</b>` : ""),
+      { parse_mode: "HTML" }
+    );
+  }
 );
+
 
 
 // Submit solution with improved error handling
@@ -2547,7 +2897,7 @@ registerCommand(
 );
 
 // List all battle rooms with lock/unlock emoji and join info
-registerCommand(
+/*registerCommand(
   /\/battle rooms$/,
   "List all active battle rooms",
   (msg) => {
@@ -2578,7 +2928,43 @@ registerCommand(
       { parse_mode: "HTML" }
     );
   }
+);*/
+
+// ===== List Active Battle Rooms =====
+registerCommand(
+  /\/battle rooms$/,
+  "List all active battle rooms",
+  (msg) => {
+    const chatId = msg.chat.id;
+    const data = readBattles();
+
+    if (!data || !Array.isArray(data.battles) || data.battles.length === 0) {
+      return bot.sendMessage(chatId, "📭 No active battle rooms right now.");
+    }
+
+    const roomsList = data.battles
+      .map((room) => {
+        const lockEmoji = room.password ? "🔒" : "🔓";
+        const playerCount = Object.keys(room.players).length;
+        const passwordHint = room.password ? " (password required)" : "";
+        const durationMinutes = room.durationMs ? Math.ceil(room.durationMs / 60000) : 5;
+        return (
+          `${lockEmoji} <b>Room:</b> ${room.code}\n` +
+          `👥 Players: ${playerCount} / 10${passwordHint}\n` +
+          `⏱ Duration: ${durationMinutes} min\n` +
+          `➡️ Join: <code>/battle join ${room.code}${room.password ? " [password]" : ""}</code>`
+        );
+      })
+      .join("\n\n");
+
+    bot.sendMessage(
+      chatId,
+      `<b>🏟 Active Battle Rooms:</b>\n\n${roomsList}`,
+      { parse_mode: "HTML" }
+    );
+  }
 );
+
 
 
 // Leave battle
@@ -2779,12 +3165,11 @@ registerCommand(
 
 
 
-// admins stats
-const ADMIN = ['6499793556']; // your Telegram user IDs
+const ADMIN = ['6499793556'];
 
 bot.onText(/\/stats$/, (msg) => {
   const chatId = msg.chat.id;
-  const userId = msg.from.id; // better to check admin by sender
+  const userId = msg.from.id.toString(); // ✅ FIX HERE
 
   if (!ADMIN.includes(userId)) {
     return bot.sendMessage(chatId, '❌ You are not authorized to use this command.');
@@ -2799,7 +3184,6 @@ bot.onText(/\/stats$/, (msg) => {
   ).length;
   const activeRooms = battles.battles.length;
 
-  // Top 5 players
   const topPlayers = Object.values(users)
     .sort((a, b) => (b.points || 0) - (a.points || 0))
     .slice(0, 5)
@@ -2825,6 +3209,7 @@ ${topPlayers}
 
   bot.sendMessage(chatId, statsMsg, { parse_mode: "HTML" });
 });
+
 
 function getRandomItem(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -3070,7 +3455,7 @@ registerCommand(/\/announce (.+)/,
   const userId = msg.from.id.toString();
   const announcement = match[1].trim();
 
-  if (!adminUserIds.includes(userId)) {
+  if (!ADMIN.includes(userId)) {
     return bot.sendMessage(chatId, "❌ You don't have permission to send announcements.");
   }
 
