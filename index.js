@@ -600,6 +600,55 @@ bot.on("message", (msg) => {
 });
 
 
+async function generateAIQuestion(difficulty = "medium", topic = "algorithms") {
+  const prompt = `
+Generate ONE coding challenge.
+Difficulty: ${difficulty}
+Topic: ${topic}
+
+Return JSON ONLY:
+{
+  "title": "",
+  "description": "",
+  "expected_output": ""
+}
+`;
+
+  const url = `https://api-rebix.vercel.app/api/gptlogic?q=${encodeURIComponent(
+    "Generate coding problem"
+  )}&prompt=${encodeURIComponent(prompt)}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  return {
+    id: "ai-" + Date.now(),
+    title: data.title,
+    description: data.description,
+    input: "",
+    expected_output: data.expected_output
+  };
+}
+
+async function createDailyTournament() {
+  const questions = [];
+
+  for (let i = 0; i < 5; i++) {
+    const q = await generateAIQuestion("hard");
+    if (q) questions.push(q);
+  }
+
+  if (!questions.length) return;
+
+  startMultiBattle({
+    mode: "daily",
+    questions,
+    rewardMultiplier: 2,
+    teamsEnabled: true
+  });
+}
+
+
 // Give daily login bonus
 function giveDailyBonus(userId, chatId) {
   let user = users[userId];
@@ -1505,138 +1554,214 @@ if (!fs.existsSync(pathLeaderboard)) fs.writeFileSync(pathLeaderboard, JSON.stri
 // More coding + trivia problems
 const battleProblems = [
   {
-    id: 'prime-check',
-    title: 'Prime Number Check',
+    id: "prime-check",
+    title: "Prime Number Check",
+    difficulty: "easy",
     description: 'Given an integer n, print "YES" if it is prime, otherwise "NO".\nExample input: 7',
-    input: '7',
-    expected_output: 'YES',
+    input: "7",
+    expected_output: "YES",
+    validate: (ans) => ans.toLowerCase().includes("yes")
   },
+
   {
-    id: 'fibonacci',
-    title: 'Nth Fibonacci',
-    description: 'Given n, print the nth Fibonacci number (0-indexed).\nExample: n=7 → 13',
-    input: '7',
-    expected_output: '13',
+    id: "fibonacci",
+    title: "Nth Fibonacci",
+    difficulty: "medium",
+    description: "Given n, print the nth Fibonacci number (0-indexed).\nExample: n=7 → 13",
+    input: "7",
+    expected_output: "13",
+    validate: (ans) => (ans.match(/\d+/g) || []).includes("13")
   },
+
   {
-    id: 'js-scope',
-    title: 'JavaScript Scope Quiz',
-    description: 'Predict the output:\n```js\nlet a = 10;\n{\n  let a = 20;\n  console.log(a);\n}\nconsole.log(a);\n```',
-    input: '',
-    expected_output: '20\n10',
+    id: "js-scope",
+    title: "JavaScript Scope Quiz",
+    difficulty: "medium",
+    description: `Predict the output:
+\`\`\`js
+let a = 10;
+{
+  let a = 20;
+  console.log(a);
+}
+console.log(a);
+\`\`\``,
+    input: "",
+    expected_output: "20 10",
+    validate: (ans) => ans.includes("20") && ans.includes("10")
   },
+
   {
-    id: 'python-loop',
-    title: 'Python Loop Output',
-    description: 'Predict the output:\n```python\nfor i in range(3):\n    print("*" * i)\n```',
-    input: '',
-    expected_output: '\n*\n**',
+    id: "python-loop",
+    title: "Python Loop Output",
+    difficulty: "easy",
+    description: `Predict the output:
+\`\`\`python
+for i in range(3):
+    print("*" * i)
+\`\`\``,
+    input: "",
+    expected_output: "* **",
+    validate: (ans) => ans.includes("*") && ans.includes("**")
   },
+
   {
-    id: 'reverse-words',
-    title: 'Reverse Words in a Sentence',
-    description: 'Given a sentence, reverse the order of words.\nExample: "I love coding" → "coding love I"',
-    input: 'I love coding',
-    expected_output: 'coding love I',
+    id: "reverse-words",
+    title: "Reverse Words",
+    difficulty: "easy",
+    description: 'Reverse the order of words.\nExample: "I love coding" → "coding love I"',
+    input: "I love coding",
+    expected_output: "coding love I",
+    validate: (ans) => ans.toLowerCase().includes("coding love i")
   },
+
   {
-    id: 'factorial',
-    title: 'Factorial Calculator',
-    description: 'Read an integer n and print n!.\nExample: 5 → 120',
-    input: '5',
-    expected_output: '120',
+    id: "factorial",
+    title: "Factorial Calculator",
+    difficulty: "easy",
+    description: "Read an integer n and print n!.\nExample: 5 → 120",
+    input: "5",
+    expected_output: "120",
+    validate: (ans) => ans.includes("120")
   },
+
   {
-    id: 'sql-query',
-    title: 'SQL Basics',
-    description: 'Write an SQL query to select all users with age > 18 from table `users`.',
-    input: '',
-    expected_output: 'SELECT * FROM users WHERE age > 18;',
+    id: "sql-query",
+    title: "SQL Basics",
+    difficulty: "medium",
+    description: "Write an SQL query to select all users with age > 18 from table `users`.",
+    input: "",
+    expected_output: "SELECT * FROM users WHERE age > 18;",
+    validate: (ans) =>
+      ans.toLowerCase().includes("select") &&
+      ans.toLowerCase().includes("age > 18")
   },
+
   {
-    id: 'trivia-closure',
-    title: 'JavaScript Closures',
-    description: 'Explain what a closure is in JavaScript.',
-    input: '',
-    expected_output: 'A closure is a function that remembers its lexical scope even when executed outside of it.',
+    id: "trivia-closure",
+    title: "JavaScript Closures",
+    difficulty: "medium",
+    description: "Explain what a closure is in JavaScript.",
+    input: "",
+    expected_output: "closure explanation",
+    validate: (ans) => ans.toLowerCase().includes("scope")
   },
+
   {
-    id: 'trivia-bigO',
-    title: 'Algorithm Complexity',
-    description: 'What is the time complexity of binary search?',
-    input: '',
-    expected_output: 'O(log n)',
+    id: "trivia-bigO",
+    title: "Algorithm Complexity",
+    difficulty: "easy",
+    description: "What is the time complexity of binary search?",
+    input: "",
+    expected_output: "O(log n)",
+    validate: (ans) => ans.toLowerCase().includes("log")
   },
+
   {
-    id: 'output-js',
-    title: 'Predict JS Output',
-    description: 'What will this output?\n```js\nconsole.log(typeof NaN);\n```',
-    input: '',
-    expected_output: 'number',
+    id: "output-js",
+    title: "Predict JS Output",
+    difficulty: "easy",
+    description: `What will this output?
+\`\`\`js
+console.log(typeof NaN);
+\`\`\``,
+    input: "",
+    expected_output: "number",
+    validate: (ans) => ans.toLowerCase().includes("number")
   },
+
   {
-    id: 'output-python',
-    title: 'Predict Python Output',
-    description: 'What will this print?\n```python\nprint("5" * 3)\n```',
-    input: '',
-    expected_output: '555',
+    id: "output-python",
+    title: "Predict Python Output",
+    difficulty: "easy",
+    description: `What will this print?
+\`\`\`python
+print("5" * 3)
+\`\`\``,
+    input: "",
+    expected_output: "555",
+    validate: (ans) => ans.includes("555")
   },
+
   {
-    id: 'anagram',
-    title: 'Check Anagram',
-    description: 'Given two strings, print "YES" if they are anagrams, otherwise "NO".\nExample: "listen silent" → "YES"',
-    input: 'listen silent',
-    expected_output: 'YES',
+    id: "anagram",
+    title: "Check Anagram",
+    difficulty: "easy",
+    description: 'Example: "listen silent" → YES',
+    input: "listen silent",
+    expected_output: "YES",
+    validate: (ans) => ans.toLowerCase().includes("yes")
   },
+
   {
-    id: 'palindrome',
-    title: 'Palindrome Checker',
-    description: 'Read a string and print "YES" if it is a palindrome, otherwise "NO".\nExample: "racecar" → "YES"',
-    input: 'racecar',
-    expected_output: 'YES',
+    id: "palindrome",
+    title: "Palindrome Checker",
+    difficulty: "easy",
+    description: 'Example: "racecar" → YES',
+    input: "racecar",
+    expected_output: "YES",
+    validate: (ans) => ans.toLowerCase().includes("yes")
   },
+
   {
-    id: 'capitalize',
-    title: 'Capitalize Words',
-    description: 'Given a sentence, capitalize the first letter of each word.\nExample: "hello world" → "Hello World"',
-    input: 'hello world',
-    expected_output: 'Hello World',
+    id: "capitalize",
+    title: "Capitalize Words",
+    difficulty: "easy",
+    description: 'Example: "hello world" → "Hello World"',
+    input: "hello world",
+    expected_output: "Hello World",
+    validate: (ans) => ans.toLowerCase().includes("hello world")
   },
-  // 💥 NEW CHALLENGES
+
+  // 💥 ADVANCED
   {
-    id: 'array-sum',
-    title: 'Sum of Array Elements',
-    description: 'Given an array of integers, print the sum of its elements.\nExample: [1,2,3,4] → 10',
-    input: '[1,2,3,4]',
-    expected_output: '10',
+    id: "array-sum",
+    title: "Sum of Array",
+    difficulty: "medium",
+    description: "Example: [1,2,3,4] → 10",
+    input: "[1,2,3,4]",
+    expected_output: "10",
+    validate: (ans) => ans.includes("10")
   },
+
   {
-    id: 'palindrome-number',
-    title: 'Palindrome Number',
-    description: 'Check if a number is a palindrome. Print "YES" or "NO".\nExample: 121 → YES',
-    input: '121',
-    expected_output: 'YES',
+    id: "palindrome-number",
+    title: "Palindrome Number",
+    difficulty: "easy",
+    description: "Example: 121 → YES",
+    input: "121",
+    expected_output: "YES",
+    validate: (ans) => ans.toLowerCase().includes("yes")
   },
+
   {
-    id: 'string-compression',
-    title: 'String Compression',
-    description: 'Compress a string by replacing repeated characters with counts.\nExample: "aaabb" → "a3b2"',
-    input: 'aaabb',
-    expected_output: 'a3b2',
+    id: "string-compression",
+    title: "String Compression",
+    difficulty: "hard",
+    description: 'Example: "aaabb" → "a3b2"',
+    input: "aaabb",
+    expected_output: "a3b2",
+    validate: (ans) => ans.toLowerCase().includes("a3b2")
   },
+
   {
-    id: 'matrix-diagonal-sum',
-    title: 'Matrix Diagonal Sum',
-    description: 'Given a 2x2 matrix, print the sum of its main diagonal.\nExample: [[1,2],[3,4]] → 5',
-    input: '[[1,2],[3,4]]',
-    expected_output: '5',
+    id: "matrix-diagonal-sum",
+    title: "Matrix Diagonal Sum",
+    difficulty: "medium",
+    description: "Example: [[1,2],[3,4]] → 5",
+    input: "[[1,2],[3,4]]",
+    expected_output: "5",
+    validate: (ans) => ans.includes("5")
   },
+
   {
-    id: 'fizzbuzz',
-    title: 'FizzBuzz',
-    description: 'Print numbers 1 to n. Replace multiples of 3 with "Fizz", multiples of 5 with "Buzz", multiples of both with "FizzBuzz".',
-    input: '15',
-    expected_output: '1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz',
+    id: "fizzbuzz",
+    title: "FizzBuzz",
+    difficulty: "hard",
+    description: "Print numbers 1 to n with FizzBuzz rules.",
+    input: "15",
+    expected_output: "FizzBuzz",
+    validate: (ans) => ans.includes("FizzBuzz")
   }
 ];
 
@@ -1741,6 +1866,7 @@ registerCommand(
     const userId = msg.from.id.toString();
     const username = msg.from.username || msg.from.first_name || "Unknown";
     const password = match[1] || "";
+    
 
     const data = readBattles();
     const user = users[userId];
@@ -1749,6 +1875,11 @@ registerCommand(
     const existing = data.battles.find(
       b => b.host === userId && b.status === "waiting"
     );
+    // Only allow if user has enough coins
+const entryFee = 50; // coins
+if ((users[uid].coins || 0) < entryFee) return bot.sendMessage(chatId, "🚫 Not enough coins to create this battle.");
+users[uid].coins -= entryFee;
+
     if (existing) {
       return bot.sendMessage(
         chatId,
@@ -1756,6 +1887,7 @@ registerCommand(
         { parse_mode: "HTML" }
       );
     }
+
 
     // 🎯 Pick random problem
     const problem = battleProblems[Math.floor(Math.random() * battleProblems.length)];
@@ -2796,7 +2928,7 @@ registerCommand(
 
 
 // Submit solution with improved error handling
-registerCommand(
+/*registerCommand(
   /\/battle submit (\w{5}) (.+)/,
   "Submit your solution output for a battle problem",
   (msg, match) => {
@@ -2861,7 +2993,450 @@ registerCommand(
       return bot.sendMessage(chatId, "❌ An error occurred while processing your submission.");
     }
   }
+);*/
+
+function normalize(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function extractNumbers(text) {
+  return text.match(/-?\d+(\.\d+)?/g) || [];
+}
+
+registerCommand(
+  /\/battle submit (\w{5}) (.+)/,
+  "Submit your answer for the current battle question",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const code = match[1].toUpperCase();
+    const outputRaw = match[2].trim();
+    const uid = msg.from.id.toString();
+
+    try {
+      const data = readBattles();
+      const battle = data.battles.find(b => b.code === code);
+      if (!battle) return bot.sendMessage(chatId, "❌ Battle not found.");
+      if (battle.status !== "running") return bot.sendMessage(chatId, "⚠️ Battle is not running.");
+      if (!battle.players[uid]) return bot.sendMessage(chatId, "🚫 You are not in this battle.");
+
+      const question = battle.questions[battle.currentQuestionIndex];
+      if (!question) return bot.sendMessage(chatId, "⚠️ No active question.");
+
+      const expected = normalize(question.expected_output);
+      const output = normalize(outputRaw);
+
+      let correct = false;
+
+      // Auto-detect answer type
+      if (["yes","no"].includes(expected)) correct = output.includes(expected);
+      else if (!isNaN(expected)) {
+        const nums = extractNumbers(output);
+        correct = nums.includes(expected);
+      } else correct = output.includes(expected);
+
+      if (correct) {
+        if (!battle.players[uid].solved[question.id]) {
+          battle.players[uid].solved[question.id] = true;
+          battle.players[uid].submitted[question.id] = output;
+
+          // 🎯 points
+          const leaderboard = readLeaderboard();
+          leaderboard.scores[uid] = (leaderboard.scores[uid] || 0) + 10;
+
+          // Team scoring
+          if (battle.teams) {
+            if (battle.teams.red.includes(uid)) battle.teamScores.red += 10;
+            if (battle.teams.blue.includes(uid)) battle.teamScores.blue += 10;
+          }
+
+          battle.submissions.push({ user: uid, question: question.id, ok: true });
+          writeLeaderboard(leaderboard);
+          writeBattles(data);
+
+          bot.sendMessage(
+            chatId,
+            `✅ Correct!\n${msg.from.username || msg.from.first_name} solved "${question.title}". +10 points!`,
+            { parse_mode: "HTML" }
+          );
+
+          // Auto-advance question if all players solved it
+          const allSolved = Object.values(battle.players).every(p => p.solved[question.id]);
+          if (allSolved) {
+            battle.currentQuestionIndex++;
+            writeBattles(data);
+
+            if (battle.currentQuestionIndex >= battle.questions.length) {
+              battle.status = "finished";
+              writeBattles(data);
+              return bot.sendMessage(chatId, `🏁 Battle ${code} finished!`);
+            }
+
+            const nextQ = battle.questions[battle.currentQuestionIndex];
+            return bot.sendMessage(chatId, `➡️ Next Question: <b>${nextQ.title}</b>\n${nextQ.description}`, { parse_mode: "HTML" });
+          }
+        } else {
+          return bot.sendMessage(chatId, "ℹ️ You already solved this question.");
+        }
+      } else {
+        // ❌ wrong
+        battle.players[uid].submitted[question.id] = output;
+        battle.submissions.push({ user: uid, question: question.id, ok: false });
+        writeBattles(data);
+        return bot.sendMessage(chatId, "❌ Incorrect answer. Try again!");
+      }
+
+    } catch (err) {
+      console.error("❌ /battle submit error:", err);
+      return bot.sendMessage(chatId, "❌ Internal error. Try again.");
+    }
+  }
 );
+
+/*registerCommand(
+  /\/battle submit (\w{5}) (.+)/,
+  "Submit your solution output for a battle problem",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const code = match[1].toUpperCase();
+    const outputRaw = match[2];
+    const uid = msg.from.id;
+
+    try {
+      const data = readBattles();
+      const battle = data.battles.find(b => b.code === code);
+      if (!battle) return bot.sendMessage(chatId, "❌ Battle not found.");
+      if (battle.status !== "running") return bot.sendMessage(chatId, "⚠️ Battle is not running.");
+      if (!battle.players[uid]) {
+        return bot.sendMessage(
+          chatId,
+          `🚫 You are not in this battle.\nJoin with <code>/battle join ${code}</code>`,
+          { parse_mode: "HTML" }
+        );
+      }
+
+      const expectedRaw = battle.problem.expected_output;
+      const output = normalize(outputRaw);
+      const expected = normalize(expectedRaw);
+
+      let correct = false;
+
+      // ✅ Custom validator
+      if (typeof battle.problem.validate === "function") {
+        correct = battle.problem.validate(outputRaw);
+      } 
+      // ✅ YES / NO
+      else if (["yes", "no"].includes(expected)) {
+        correct = output.includes(expected);
+      } 
+      // ✅ Numbers
+      else if (/^-?\d+(\.\d+)?$/.test(expected)) {
+        const nums = extractNumbers(output);
+        correct = nums.includes(expected);
+      } 
+      // ✅ Text / multiline
+      else {
+        correct = output.includes(expected);
+      }
+
+      if (!correct) {
+        battle.submissions.push({ user: uid, ok: false, got: outputRaw });
+        writeBattles(data);
+        return bot.sendMessage(chatId, "❌ Incorrect answer. Try again!");
+      }
+
+      // Already solved?
+      if (battle.players[uid].solved) {
+        return bot.sendMessage(chatId, "ℹ️ You already solved this one.");
+      }
+
+      // ✅ Mark solved
+      battle.players[uid].submitted = true;
+      battle.players[uid].solved = true;
+      battle.players[uid].time = Date.now() - (battle.startedAt || battle.createdAt);
+      battle.submissions.push({ user: uid, ok: true });
+
+      // 🎯 Award points to user
+      const leaderboard = readLeaderboard();
+      leaderboard.scores[uid] = (leaderboard.scores[uid] || 0) + 10;
+
+      // 🎯 Award points to team if applicable
+      if (battle.teams) {
+        let playerTeam = null;
+        if (battle.teams.red.includes(uid)) playerTeam = "red";
+        if (battle.teams.blue.includes(uid)) playerTeam = "blue";
+
+        if (playerTeam) {
+          battle.teamScores[playerTeam] = (battle.teamScores[playerTeam] || 0) + 10;
+        }
+      }
+
+      writeLeaderboard(leaderboard);
+      writeBattles(data);
+
+      return bot.sendMessage(
+        chatId,
+        `✅ <b>Correct!</b>\n${msg.from.username || msg.from.first_name} solved it.\n+10 points 🎉`,
+        { parse_mode: "HTML" }
+      );
+
+    } catch (err) {
+      console.error("❌ /battle submit error:", err);
+      return bot.sendMessage(chatId, "❌ Internal error. Try again.");
+    }
+  }
+);*/
+function endTeamBattle(battle) {
+  const red = battle.teamScores.red || 0;
+  const blue = battle.teamScores.blue || 0;
+
+  let result = "🤝 DRAW";
+  if (red > blue) result = "🔴 RED WINS!";
+  if (blue > red) result = "🔵 BLUE WINS!";
+
+  battle.status = "ended";
+  writeBattles(readBattles());
+
+  Object.keys(users).forEach(uid => {
+    bot.sendMessage(
+      uid,
+      `🏁 <b>Team Battle Ended!</b>\n\n${result}\n\n` +
+      `🔴 Red: ${red} pts\n🔵 Blue: ${blue} pts`,
+      { parse_mode: "HTML" }
+    ).catch(() => {});
+  });
+}
+
+
+function sendMultiQuestion(battle) {
+  const q = battle.questions[battle.currentIndex];
+
+  Object.values(battle.players).forEach(p => {
+    bot.sendMessage(
+      p.id,
+      `🧠 <b>Question ${battle.currentIndex + 1}</b>\n\n` +
+      `<b>${q.title}</b>\n${q.description}\n\n` +
+      `➡️ <code>/multibattle submit ${battle.code} &lt;answer&gt;</code>`,
+      { parse_mode: "HTML" }
+    ).catch(()=>{});
+  });
+
+  setTimeout(() => advanceMultiBattle(battle.code), battle.perQuestionTimeSec * 1000);
+}
+function advanceMultiBattle(code) {
+  const data = readBattles();
+  const b = data.multiBattles.find(x => x.code === code);
+  if (!b || b.status !== "running") return;
+
+  b.currentIndex++;
+
+  if (b.currentIndex >= b.questions.length) {
+    b.status = "finished";
+    announceWinners(b);
+  } else {
+    b.questionStartedAt = Date.now();
+    sendMultiQuestion(b);
+  }
+
+  writeBattles(data);
+}
+function announceWinners(b) {
+  const rank = Object.values(b.players)
+    .sort((a,b)=>b.score-a.score)
+    .map((p,i)=>`${i+1}. ${p.name} — ${p.score} pts`)
+    .join("\n");
+
+  Object.values(b.players).forEach(p => {
+    bot.sendMessage(p.id, `🏆 <b>MultiBattle Results</b>\n\n${rank}`, {
+      parse_mode: "HTML"
+    }).catch(()=>{});
+  });
+}
+registerCommand(
+  /^\/battle team (red|blue)$/i,
+  "Join a battle team (red or blue)",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const team = match[1].toLowerCase();
+    const uid = msg.from.id;
+
+    const data = readBattles();
+    const battle = data.battles.find(
+      b => b.status === "running" && b.teams
+    );
+
+    if (!battle) {
+      return bot.sendMessage(chatId, "❌ No active team battle.");
+    }
+
+    // ❌ already assigned?
+    if (
+      battle.teams.red.includes(uid) ||
+      battle.teams.blue.includes(uid)
+    ) {
+      return bot.sendMessage(chatId, "⚠️ You already joined a team.");
+    }
+
+    battle.teams[team].push(uid);
+    writeBattles(data);
+
+    bot.sendMessage(
+      chatId,
+      `✅ You joined <b>${team.toUpperCase()}</b> team ${
+        team === "red" ? "🔴" : "🔵"
+      }`,
+      { parse_mode: "HTML" }
+    );
+  }
+);
+
+
+registerCommand(
+  /^\/multibattle create(?: (\d+))?$/,
+  "Create a multi-question battle",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    const name = msg.from.username || msg.from.first_name;
+
+    const qCount = Math.min(parseInt(match?.[1]) || 5, 10);
+    const questions = [...battleProblems]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, qCount);
+
+    const code = genRoomCode();
+    const data = readBattles();
+    data.multiBattles ??= [];
+
+    data.multiBattles.push({
+      code,
+      host: userId,
+      status: "waiting",
+      questions,
+      currentIndex: 0,
+      perQuestionTimeSec: 60,
+      players: {
+        [userId]: {
+          id: userId,
+          name,
+          score: 0,
+          answered: {}
+        }
+      }
+    });
+
+    writeBattles(data);
+
+    bot.sendMessage(
+      chatId,
+      `🔥 <b>MultiBattle Created!</b>\n\n` +
+      `🆔 Code: <b>${code}</b>\n` +
+      `❓ Questions: ${qCount}\n\n` +
+      `➡️ Join with <code>/multibattle join ${code}</code>`,
+      { parse_mode: "HTML" }
+    );
+  }
+);
+
+registerCommand(
+  /^\/multibattle join (\w{5,6})$/,
+  "Join a multibattle room",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    const name = msg.from.username || msg.from.first_name;
+
+    const data = readBattles();
+    const battle = data.multiBattles?.find(b => b.code === match[1]);
+
+    if (!battle) return bot.sendMessage(chatId, "❌ Room not found.");
+    if (battle.status !== "waiting") return bot.sendMessage(chatId, "⚠️ Already started.");
+
+    battle.players[userId] = {
+      id: userId,
+      name,
+      score: 0,
+      answered: {}
+    };
+
+    writeBattles(data);
+    bot.sendMessage(chatId, "✅ Joined MultiBattle!");
+  }
+);
+
+registerCommand(
+  /^\/multibattle start (\w{5,6})$/,
+  "Start a multibattle",
+  (msg, match) => {
+    const data = readBattles();
+    const battle = data.multiBattles.find(b => b.code === match[1]);
+
+    if (!battle) return bot.sendMessage(msg.chat.id, "❌ Not found.");
+    if (msg.from.id !== battle.host)
+      return bot.sendMessage(msg.chat.id, "🚫 Host only.");
+
+    battle.status = "running";
+    battle.questionStartedAt = Date.now();
+    writeBattles(data);
+
+    sendMultiQuestion(battle);
+  }
+);
+
+registerCommand(
+  /^\/multibattle ai (\d+)(?: (\w+))?$/,
+  "Create AI-generated multibattle",
+  async (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    const count = Math.min(parseInt(match[1]), 10);
+    const difficulty = match[2] || "medium";
+
+    bot.sendMessage(chatId, "🤖 Generating AI questions...");
+
+    const questions = [];
+    for (let i = 0; i < count; i++) {
+      questions.push(await generateAIQuestion(difficulty));
+    }
+
+    const code = genRoomCode();
+    const data = readBattles();
+    data.multiBattles ??= [];
+
+    data.multiBattles.push({
+      code,
+      host: userId,
+      status: "waiting",
+      questions,
+      currentIndex: 0,
+      perQuestionTimeSec: 60,
+      players: {
+        [userId]: {
+          id: userId,
+          name: msg.from.username || msg.from.first_name,
+          score: 0,
+          answered: {}
+        }
+      }
+    });
+
+    writeBattles(data);
+
+    bot.sendMessage(
+      chatId,
+      `🤖 <b>AI MultiBattle Created</b>\n\n` +
+      `🆔 Code: <b>${code}</b>\n` +
+      `🔥 Difficulty: ${difficulty}\n` +
+      `❓ Questions: ${count}`,
+      { parse_mode: "HTML" }
+    );
+  }
+);
+
+
+
 
 registerCommand(
   /\/battle delete (\S+)/,
@@ -3598,6 +4173,81 @@ registerCommand(
     bot.sendMessage(msg.chat.id, rewardText);
   }
 );
+const lb = readLeaderboard();
+if (lb.seasonEnded) {
+  lb.seasonEnded = false;
+  writeLeaderboard(lb);
+}
+
+registerCommand(
+  /^\/endseason$/,
+  "End ranked season and reward players",
+  (msg) => {
+    const adminId = msg.from.id.toString();
+    if (!ADMIN.includes(adminId)) {
+      return bot.sendMessage(msg.chat.id, "🚫 Admin only.");
+    }
+
+    const lb = readLeaderboard();
+
+    // 🔒 Session guard
+    if (lb.seasonEnded) {
+      return bot.sendMessage(
+        msg.chat.id,
+        "⚠️ This season has already been ended."
+      );
+    }
+
+    const season = lb.currentSeason;
+
+    const ranked = Object.entries(lb.scores)
+      .sort(
+        (a, b) =>
+          (b[1]?.seasons?.[season] || 0) -
+          (a[1]?.seasons?.[season] || 0)
+      );
+
+    ranked.forEach(([uid], index) => {
+      const user = users[uid];
+      if (!user) return;
+
+      user.coins ??= 0;
+      user.badges ??= [];
+
+      if (index === 0) {
+        user.coins += 5000;
+        user.badges.push(`🏆 Season ${season} Champion`);
+      } else if (index < 5) user.coins += 2000;
+      else if (index < 10) user.coins += 1000;
+      else if (index < 50) user.coins += 300;
+    });
+
+    // 🔁 Move to next season
+    lb.currentSeason += 1;
+    lb.seasonEnded = true;
+
+    saveUsers();
+    writeLeaderboard(lb);
+
+    // 📣 Notify ALL users
+    Object.keys(users).forEach(uid => {
+      bot.sendMessage(
+        uid,
+        `🎉 <b>Season ${season} has ended!</b>\n\n` +
+        `🏆 Rewards have been distributed.\n` +
+        `🚀 Season ${lb.currentSeason} has now begun!\n\n` +
+        `Start battling to climb the leaderboard again 💪`,
+        { parse_mode: "HTML" }
+      ).catch(() => {});
+    });
+
+    bot.sendMessage(
+      msg.chat.id,
+      `✅ Season ${season} ended successfully.\nUsers notified.`
+    );
+  }
+);
+
 
 let activeBattles = {};
 registerCommand(
