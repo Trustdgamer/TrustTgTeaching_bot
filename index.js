@@ -30,7 +30,9 @@ const utils = require("./utils");
 const ADMIN_IDS = ["6499793556"];
 
 // Load data
-const users = readJSON("./users.json") || {};
+const users = Object.freeze(readJSON("./users.json") || {});
+
+//const users = readJSON("./users.json") || {};
 const leaderboard = readJSON("./leaderboard.json") || {};
 const battles = readJSON("./battles.json") || { battles: [] };
 
@@ -93,86 +95,6 @@ app.listen(PORT, () => {
   console.log(`🌐 Web service running at http://localhost:${PORT}/`);
 });
 
-/*require("dotenv").config();
-const { exec } = require("child_process");
-
-
-const TelegramBot = require('node-telegram-bot-api');
-//const Groq = require('groq-sdk');
-const fs = require('fs');
-const axios = require('axios');
-const express = require("express");
-const path = require("path");
-const app = express();
-const PORT = process.env.PORT || 3000;
-// Load your data
-const { readJSON, saveJSON } = require("./utils"); // adjust paths
-const users = readJSON("./users.json") || {};
-const leaderboard = readJSON("./leaderboard.json") || {};
-const battles = readJSON("./battles.json") || { battles: [] };
-
-// Get users
-app.get("/api/users", (req, res) => {
-  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
-  res.json(users);
-});
-
-// Get leaderboard
-app.get("/api/leaderboard", (req, res) => {
-  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
-  res.json(leaderboard);
-});
-
-// Get battles
-app.get("/api/battles", (req, res) => {
-  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
-  res.json(battles);
-});
-
-// Give coins (monetization)
-app.get("/api/give-coins", (req, res) => {
-  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
-
-  const uid = req.query.uid;
-  const amt = parseInt(req.query.amt, 10);
-
-  if (!users[uid]) return res.send("User not found");
-  if (isNaN(amt)) return res.send("Invalid amount");
-
-  users[uid].coins = (users[uid].coins || 0) + amt;
-  saveJSON("./users.json", users);
-  res.send(`✅ Gave ${amt} coins to ${uid}`);
-});
-
-// Serve static files (HTML, CSS, JS)
-app.use("/dashboard", express.static(path.join(__dirname, "dashboard")));
-
-// Simple auth for admin (optional)
-const ADMIN_IDS = ["6499793556"]; // your Telegram ID(s)
-app.use("/dashboard", (req, res, next) => {
-  // Example: check for query ?admin=YOURID
-  if (!req.query.admin || !ADMIN_IDS.includes(req.query.admin)) {
-    return res.status(403).send("🚫 Unauthorized");
-  }
-  next();
-});
-
-app.listen(PORT, () => console.log(`🌐 Dashboard running at http://localhost:${PORT}/dashboard`));
-
-//const express = require('express');
-//const app = express();
-
-
-// Default route
-app.get('/', (req, res) => {
-  res.send('🤖 TrustBuddyBot is alive!');
-});
-
-// Use the PORT Render provides, or fallback to 3000 locally
-//const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🌐 Web service running on port ${PORT}`);
-});*/
 
 const { checkPremiumExpiry } = require('./quizTask'); // adjust path
 // import { exec } from "child_process";
@@ -326,6 +248,41 @@ function addPlayerToRoom(roomCode, userId, username) {
   room.players.push({ userId, username, score: 0 });
   saveRooms();
   return true;
+}
+const { renderScores } = require("./utils/renderScores");
+
+function endMultiBattle(battle, chatId) {
+  battle.status = "ended";
+
+  // 🏆 Sort players
+  const playersArr = Object.values(battle.players)
+    .sort((a, b) => b.score - a.score);
+
+  const winner = playersArr[0];
+
+  const scoreText = renderScores(battle.players);
+
+  // 📊 Send score summary
+  bot.sendMessage(
+    chatId,
+    `🏁 <b>MultiBattle Finished!</b>\n\n` +
+    `🏆 <b>Winner:</b> ${winner.name}\n\n` +
+    `${scoreText}`,
+    { parse_mode: "HTML" }
+  );
+
+  // 📈 Update leaderboard
+  const lb = readLeaderboard();
+  const season = lb.currentSeason;
+
+  for (const p of playersArr) {
+    lb.scores[p.id] ??= { total: 0, seasons: {} };
+    lb.scores[p.id].total += p.score;
+    lb.scores[p.id].seasons[season] =
+      (lb.scores[p.id].seasons[season] || 0) + p.score;
+  }
+
+  writeLeaderboard(lb);
 }
 
 function cleanupRooms() {
@@ -741,35 +698,63 @@ bot.on("message", (msg) => {
 });
 
 
-async function generateAIQuestion(difficulty = "medium", topic = "algorithms") {
+async function generateAIQuestion(
+  difficulty = "medium",
+  topic = "algorithms"
+) {
   const prompt = `
+You are a competitive programming problem generator.
+
 Generate ONE coding challenge.
 Difficulty: ${difficulty}
 Topic: ${topic}
 
-Return JSON ONLY:
+STRICT RULES:
+- Respond with JSON ONLY
+- No markdown
+- No explanation
+- No backticks
+
+Format:
 {
-  "title": "",
-  "description": "",
-  "expected_output": ""
+  "title": "string",
+  "description": "string",
+  "expected_output": "string"
 }
 `;
 
-  const url = `https://api-rebix.vercel.app/api/gptlogic?q=${encodeURIComponent(
-    "Generate coding problem"
+  const aiUrl = `https://api-rebix.vercel.app/api/gptlogic?q=${encodeURIComponent(
+    "Generate a coding challenge"
   )}&prompt=${encodeURIComponent(prompt)}`;
 
-  const res = await fetch(url);
+  const res = await fetch(aiUrl);
+  if (!res.ok) throw new Error("AI API failed");
+
   const data = await res.json();
+
+  let text = data.response;
+  if (!text) throw new Error("Empty AI response");
+
+  // 🧹 Clean accidental formatting
+  text = text.replace(/```json|```/g, "").trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (err) {
+    console.error("❌ AI JSON ERROR:", text);
+    throw new Error("Invalid AI JSON");
+  }
 
   return {
     id: "ai-" + Date.now(),
-    title: data.title,
-    description: data.description,
+    title: parsed.title || "AI Coding Challenge",
+    description: parsed.description || "Solve the problem",
     input: "",
-    expected_output: data.expected_output
+    expected_output: String(parsed.expected_output || "").trim()
   };
 }
+
 
 async function createDailyTournament() {
   const questions = [];
@@ -2539,23 +2524,23 @@ registerCommand(
       );
     }
 
-    const targetUser = users[targetUserKey];
+const usersData = readJSON("./users.json") || {};
+const targetUser = usersData[targetUserKey];
 
-    // 💰 Unlimited coin mint
-    targetUser.coins = (targetUser.coins || 0) + amount;
+targetUser.coins = (targetUser.coins || 0) + amount;
 
-    // 📬 Send inbox mail to user
-    addMailToUser(targetUserKey, {
-      from: "admin",
-      subject: "🎁 Coins Reward",
-      body:
-        `Congratulations!\n\n` +
-        `You have received 💰 ${amount} coins from the admin.\n\n` +
-        `🏦 Your new balance is ${targetUser.coins} coins.\n\n` +
-        `Keep learning and earning 🚀`
-    });
+addMailToUser(targetUserKey, {
+  from: "admin",
+  subject: "🎁 Coins Reward",
+  body:
+    `Congratulations!\n\n` +
+    `You have received 💰 ${amount} coins from the admin.\n\n` +
+    `🏦 Your new balance is ${targetUser.coins} coins.\n\n` +
+    `Keep learning and earning 🚀`
+});
 
-    saveUsers();
+saveJSON("./users.json", usersData);
+
 
     // ✅ Confirm to admin
     bot.sendMessage(
@@ -2869,6 +2854,11 @@ registerCommand(
     if (!data || !Array.isArray(data.battles)) {
       return bot.sendMessage(chatId, '❌ Error loading battles.');
     }
+    if (battle.currentIndex >= battle.questions.length) {
+  endMultiBattle(battle, chatId);
+  writeBattles(data);
+  return;
+}
 
     const battle = data.battles.find(b => String(b.code).trim().toUpperCase() === code);
     if (!battle) return bot.sendMessage(chatId, '❌ Battle not found.');
@@ -3507,7 +3497,7 @@ registerCommand(
   }
 );
 
-registerCommand(
+/*registerCommand(
   /^\/multibattle start (\w{5,6})$/,
   "/multibattle start Start a multibattle",
   (msg, match) => {
@@ -3524,57 +3514,193 @@ registerCommand(
 
     sendMultiQuestion(battle);
   }
+);*/
+
+registerCommand(
+  /^\/multibattle start (\w{5})$/i,
+  "Start a multibattle",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    const code = match[1].toUpperCase();
+
+    const data = readBattles();
+    const battle = data.multiBattles?.find(b => b.code === code);
+
+    if (!battle) return bot.sendMessage(chatId, "❌ Multibattle not found.");
+    if (battle.host !== userId) return bot.sendMessage(chatId, "🚫 Host only.");
+    if (battle.status !== "waiting") return bot.sendMessage(chatId, "⚠️ Already started.");
+
+    battle.status = "running";
+    battle.startedAt = Date.now();
+    battle.currentIndex = 0;
+
+    writeBattles(data);
+
+    const q = battle.questions[0];
+
+    bot.sendMessage(
+      chatId,
+      `🚀 <b>MultiBattle Started!</b>\n\n` +
+      `❓ <b>Question 1/${battle.questions.length}</b>\n` +
+      `📌 <b>${q.title}</b>\n\n${q.description}\n\n` +
+      `✍️ Submit with:\n<code>/multibattle submit ${code} your_answer</code>`,
+      { parse_mode: "HTML" }
+    );
+  }
 );
+
 
 registerCommand(
   /^\/multibattle ai (\d+)(?: (\w+))?$/,
-  "/multibattle ai 2 Create AI-generated multibattle",
+  "/multibattle ai <count> [difficulty]",
   async (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
-    const count = Math.min(parseInt(match[1]), 10);
+    const count = Math.min(parseInt(match[1], 10) || 1, 10);
     const difficulty = match[2] || "medium";
 
-    bot.sendMessage(chatId, "🤖 Generating AI questions...");
+    const data = readBattles();
+    data.multiBattles ??= [];
+
+    // 🚫 Prevent duplicate waiting battles
+    const existing = data.multiBattles.find(
+      b => b.host === userId && b.status === "waiting"
+    );
+    if (existing) {
+      return bot.sendMessage(
+        chatId,
+        `⚠️ You already have a waiting multibattle (Code: <b>${existing.code}</b>)`,
+        { parse_mode: "HTML" }
+      );
+    }
+    if (battle.currentIndex >= battle.questions.length) {
+  endMultiBattle(battle, chatId);
+  writeBattles(data);
+  return;
+}
+
+
+    bot.sendMessage(chatId, "🤖 Generating AI questions... Please wait ⏳");
 
     const questions = [];
+
     for (let i = 0; i < count; i++) {
-      questions.push(await generateAIQuestion(difficulty));
+      try {
+        const q = await generateAIQuestion(difficulty);
+
+        // 🛡 Validate AI response
+        if (!q || !q.title || !q.expected_output) {
+          throw new Error("Invalid AI question");
+        }
+
+        questions.push(q);
+      } catch (err) {
+        console.error("❌ AI Question Error:", err);
+        return bot.sendMessage(
+          chatId,
+          "❌ Failed to generate AI questions. Please try again."
+        );
+      }
     }
 
     const code = genRoomCode();
-    const data = readBattles();
-    data.multiBattles ??= [];
 
     data.multiBattles.push({
       code,
       host: userId,
       status: "waiting",
+      createdAt: Date.now(),
+      startedAt: null,
+
       questions,
       currentIndex: 0,
       perQuestionTimeSec: 60,
+
       players: {
         [userId]: {
           id: userId,
-          name: msg.from.username || msg.from.first_name,
+          name: msg.from.username || msg.from.first_name || "Host",
           score: 0,
           answered: {}
         }
-      }
+      },
+
+      submissions: []
     });
 
     writeBattles(data);
 
     bot.sendMessage(
       chatId,
-      `🤖 <b>AI MultiBattle Created</b>\n\n` +
+      `🤖 <b>AI MultiBattle Created!</b>\n\n` +
       `🆔 Code: <b>${code}</b>\n` +
-      `🔥 Difficulty: ${difficulty}\n` +
-      `❓ Questions: ${count}`,
+      `🔥 Difficulty: <b>${difficulty}</b>\n` +
+      `❓ Questions: <b>${questions.length}</b>\n\n` +
+      `👥 Others can join with:\n<code>/multibattle join ${code}</code>`,
       { parse_mode: "HTML" }
     );
   }
 );
+registerCommand(
+  /^\/multibattle next (\w{5})$/i,
+  "Move to next multibattle question",
+  (msg, match) => {
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    const code = match[1].toUpperCase();
+
+    const data = readBattles();
+    const battle = data.multiBattles?.find(b => b.code === code);
+
+    if (!battle) return bot.sendMessage(chatId, "❌ Multibattle not found.");
+    if (battle.host !== userId) return bot.sendMessage(chatId, "🚫 Host only.");
+    if (battle.status !== "running") return bot.sendMessage(chatId, "⚠️ Battle not running.");
+
+    battle.currentIndex++;
+
+    // 🏁 END BATTLE
+    if (battle.currentIndex >= battle.questions.length) {
+      battle.status = "finished";
+
+      // 🏆 Update leaderboard
+      const leaderboard = readLeaderboard();
+
+      Object.values(battle.players).forEach(p => {
+        leaderboard.scores[p.id] =
+          (leaderboard.scores[p.id] || 0) + (p.score || 0);
+      });
+
+      writeLeaderboard(leaderboard);
+      writeBattles(data);
+
+      const results = Object.values(battle.players)
+        .sort((a, b) => b.score - a.score)
+        .map((p, i) => `${i + 1}. ${p.name} — ${p.score} pts`)
+        .join("\n");
+
+      return bot.sendMessage(
+        chatId,
+        `🏁 <b>MultiBattle Finished!</b>\n\n🏆 <b>Final Scores</b>\n${results}`,
+        { parse_mode: "HTML" }
+      );
+    }
+
+    // ▶️ NEXT QUESTION
+    const q = battle.questions[battle.currentIndex];
+
+    writeBattles(data);
+
+    bot.sendMessage(
+      chatId,
+      `➡️ <b>Next Question (${battle.currentIndex + 1}/${battle.questions.length})</b>\n\n` +
+      `📌 <b>${q.title}</b>\n\n${q.description}\n\n` +
+      `✍️ Submit with:\n<code>/multibattle submit ${code} your_answer</code>`,
+      { parse_mode: "HTML" }
+    );
+  }
+);
+
 
 
 
