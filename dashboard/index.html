@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustBuddy Admin Dashboard</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: #0f1530;
+    color: #fff;
+  }
+  header {
+    background: linear-gradient(90deg,#b66cff,#ff6ec7);
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+  }
+  main {
+    padding: 1rem 2rem;
+  }
+  h2 { margin-top: 2rem; color: #00d4a9; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+  }
+  th, td {
+    padding: 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    text-align: left;
+  }
+  th { color: #b66cff; }
+  button {
+    background: #ff6ec7;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #fff;
+    font-weight: bold;
+  }
+  button:hover {
+    background: #b66cff;
+  }
+  input[type="number"], input[type="text"] {
+    padding: 0.4rem;
+    border-radius: 4px;
+    border: none;
+    margin-right: 0.4rem;
+  }
+  .section {
+    margin-bottom: 3rem;
+    background: rgba(255,255,255,0.05);
+    padding: 1rem;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>🤖 TrustBuddy Admin Dashboard</header>
+<main>
+  <div class="section">
+    <h2>Users</h2>
+    <table id="usersTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Coins</th><th>VIP</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Leaderboard</h2>
+    <table id="leaderboardTable">
+      <thead>
+        <tr><th>Rank</th><th>ID</th><th>Points</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Active Battles</h2>
+    <table id="battlesTable">
+      <thead>
+        <tr><th>Code</th><th>Host</th><th>Status</th><th>Players</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Monetization: Give Coins</h2>
+    <input type="text" id="giveUserId" placeholder="User ID">
+    <input type="number" id="giveAmount" placeholder="Amount">
+    <button onclick="giveCoins()">Give Coins</button>
+    <p id="giveResult"></p>
+  </div>
+</main>
+
+<script>
+const ADMIN_ID = "6499793556"; // Your Telegram ID for API queries
+
+async function fetchUsers() {
+  const res = await fetch(`/api/users?admin=${ADMIN_ID}`);
+  const users = await res.json();
+  const tbody = document.querySelector("#usersTable tbody");
+  tbody.innerHTML = "";
+  Object.values(users).forEach(u => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${u.id}</td>
+      <td>${u.username || u.first_name || 'Unknown'}</td>
+      <td>${u.coins || 0}</td>
+      <td>${u.vip ? "✅" : "❌"}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function fetchLeaderboard() {
+  const res = await fetch(`/api/leaderboard?admin=${ADMIN_ID}`);
+  const lb = await res.json();
+  const tbody = document.querySelector("#leaderboardTable tbody");
+  tbody.innerHTML = "";
+  const sorted = Object.entries(lb.scores)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([id, pts], idx)=>({rank: idx+1,id,pts}));
+  sorted.forEach(entry => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${entry.rank}</td><td>${entry.id}</td><td>${entry.pts}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function fetchBattles() {
+  const res = await fetch(`/api/battles?admin=${ADMIN_ID}`);
+  const battles = await res.json();
+  const tbody = document.querySelector("#battlesTable tbody");
+  tbody.innerHTML = "";
+  battles.battles.forEach(b => {
+    const tr = document.createElement("tr");
+    const playersCount = Object.keys(b.players || {}).length;
+    tr.innerHTML = `<td>${b.code}</td><td>${b.host}</td><td>${b.status}</td><td>${playersCount}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function giveCoins() {
+  const uid = document.getElementById("giveUserId").value;
+  const amt = document.getElementById("giveAmount").value;
+  if (!uid || !amt) return alert("Enter user ID and amount");
+  const res = await fetch(`/api/give-coins?admin=${ADMIN_ID}&uid=${uid}&amt=${amt}`);
+  const text = await res.text();
+  document.getElementById("giveResult").innerText = text;
+  fetchUsers(); // refresh table
+}
+
+// Initial load
+fetchUsers();
+fetchLeaderboard();
+fetchBattles();
+
+// Refresh every 10 seconds
+setInterval(() => {
+  fetchUsers();
+  fetchLeaderboard();
+  fetchBattles();
+}, 10000);
+</script>
+
+</body>
+</html>

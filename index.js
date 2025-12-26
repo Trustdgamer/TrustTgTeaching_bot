@@ -1,14 +1,167 @@
 //require('dotenv').config();
 require("dotenv").config();
 const { exec } = require("child_process");
+const TelegramBot = require('node-telegram-bot-api');
+const fs = require('fs');
+const axios = require('axios');
+const express = require("express");
+const path = require("path");
+const app = express();
+const PORT = process.env.PORT || 3000;
+function readJSON(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file));
+  } catch {
+    return {};
+  }
+}
+
+function saveJSON(path, data) {
+  try {
+    fs.writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving JSON to', path, e);
+  }
+}
+// Utils
+const utils = require("./utils");
+
+// Admin IDs
+const ADMIN_IDS = ["6499793556"];
+
+// Load data
+const users = readJSON("./users.json") || {};
+const leaderboard = readJSON("./leaderboard.json") || {};
+const battles = readJSON("./battles.json") || { battles: [] };
+
+// ----------------- API ROUTES -----------------
+
+// Get users
+app.get("/api/users", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+  res.json(users);
+});
+
+// Get leaderboard
+app.get("/api/leaderboard", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+  res.json(leaderboard);
+});
+
+// Get battles
+app.get("/api/battles", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+  res.json(battles);
+});
+
+// Give coins (monetization)
+app.get("/api/give-coins", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+
+  const uid = req.query.uid;
+  const amt = parseInt(req.query.amt, 10);
+
+  if (!users[uid]) return res.send("User not found");
+  if (isNaN(amt)) return res.send("Invalid amount");
+
+  users[uid].coins = (users[uid].coins || 0) + amt;
+  saveJSON("./users.json", users);
+  res.send(`✅ Gave ${amt} coins to ${uid}`);
+});
+
+// ----------------- DASHBOARD STATIC FILES -----------------
+
+// Simple admin auth for dashboard
+app.use("/dashboard", (req, res, next) => {
+  if (!req.query.admin || !ADMIN_IDS.includes(req.query.admin)) {
+    return res.status(403).send("🚫 Unauthorized");
+  }
+  next();
+});
+
+// Serve static dashboard
+app.use("/dashboard", express.static(path.join(__dirname, "dashboard")));
+
+// ----------------- DEFAULT ROUTE -----------------
+app.get('/', (req, res) => {
+  res.send('🤖 TrustBuddyBot is alive!');
+});
+
+// ----------------- START SERVER -----------------
+app.listen(PORT, () => {
+  console.log(`🌐 Dashboard running at http://localhost:${PORT}/dashboard`);
+  console.log(`🌐 Web service running at http://localhost:${PORT}/`);
+});
+
+/*require("dotenv").config();
+const { exec } = require("child_process");
 
 
 const TelegramBot = require('node-telegram-bot-api');
 //const Groq = require('groq-sdk');
 const fs = require('fs');
 const axios = require('axios');
-const express = require('express');
+const express = require("express");
+const path = require("path");
 const app = express();
+const PORT = process.env.PORT || 3000;
+// Load your data
+const { readJSON, saveJSON } = require("./utils"); // adjust paths
+const users = readJSON("./users.json") || {};
+const leaderboard = readJSON("./leaderboard.json") || {};
+const battles = readJSON("./battles.json") || { battles: [] };
+
+// Get users
+app.get("/api/users", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+  res.json(users);
+});
+
+// Get leaderboard
+app.get("/api/leaderboard", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+  res.json(leaderboard);
+});
+
+// Get battles
+app.get("/api/battles", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+  res.json(battles);
+});
+
+// Give coins (monetization)
+app.get("/api/give-coins", (req, res) => {
+  if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
+
+  const uid = req.query.uid;
+  const amt = parseInt(req.query.amt, 10);
+
+  if (!users[uid]) return res.send("User not found");
+  if (isNaN(amt)) return res.send("Invalid amount");
+
+  users[uid].coins = (users[uid].coins || 0) + amt;
+  saveJSON("./users.json", users);
+  res.send(`✅ Gave ${amt} coins to ${uid}`);
+});
+
+// Serve static files (HTML, CSS, JS)
+app.use("/dashboard", express.static(path.join(__dirname, "dashboard")));
+
+// Simple auth for admin (optional)
+const ADMIN_IDS = ["6499793556"]; // your Telegram ID(s)
+app.use("/dashboard", (req, res, next) => {
+  // Example: check for query ?admin=YOURID
+  if (!req.query.admin || !ADMIN_IDS.includes(req.query.admin)) {
+    return res.status(403).send("🚫 Unauthorized");
+  }
+  next();
+});
+
+app.listen(PORT, () => console.log(`🌐 Dashboard running at http://localhost:${PORT}/dashboard`));
+
+//const express = require('express');
+//const app = express();
+
 
 // Default route
 app.get('/', (req, res) => {
@@ -16,10 +169,10 @@ app.get('/', (req, res) => {
 });
 
 // Use the PORT Render provides, or fallback to 3000 locally
-const PORT = process.env.PORT || 3000;
+//const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🌐 Web service running on port ${PORT}`);
-});
+});*/
 
 const { checkPremiumExpiry } = require('./quizTask'); // adjust path
 // import { exec } from "child_process";
@@ -97,18 +250,12 @@ function registerCommand(regex, description, handler) {
 
 
 
-function saveJSON(path, data) {
-  try {
-    fs.writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Error saving JSON to', path, e);
-  }
-}
-let users = JSON.parse(fs.readFileSync('./users.json', 'utf8'));
+
+//let users = JSON.parse(fs.readFileSync('./users.json', 'utf8'));
 
 
 
-const path = './users.json';
+//onst path = './users.json';
 const mailboxFile = './mailboxes.json';
 
 function readMailboxes() {
@@ -141,13 +288,7 @@ function addMailToUser(userId, mail) {
   writeMailboxes(mailboxes);
 }
 
-function readJSON(file) {
-  try {
-    return JSON.parse(fs.readFileSync(file));
-  } catch {
-    return {};
-  }
-}
+
 
 function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
@@ -1859,7 +2000,7 @@ function broadcastNewRooms() {
 // /battle start command
 registerCommand(
   /\/battle create(?:\s+(\S+))?$/,
-  "Start a new battle (optionally password-protected)",
+  "/battle create Start a new battle (optionally password-protected)",
   (msg, match) => {
 
     const chatId = msg.chat.id;
@@ -2099,7 +2240,7 @@ registerCommand(
 // ===== Battle Join (Pro version) =====
 registerCommand(
   /\/battle join (\S+)(?:\s+(\S+))?$/,
-  "Join a battle room",
+  "/battle join <room> Join a battle room",
   (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
@@ -2352,7 +2493,7 @@ registerCommand(/\/myid$/, "Show your bot ID", (msg) => {
 
 // /giftcoins <userID> <amount>
 // ======= Simple safe /giftcoins handler (no registerCommand) =======
-const ADMIN_IDS = new Set(["6499793556"]); // put your admin Telegram IDs here (strings or numbers)
+//const ADMIN_IDS = new Set(["6499793556"]); // put your admin Telegram IDs here (strings or numbers)
 
 // helper to check admin
 function isAdmin(id) {
@@ -2712,7 +2853,7 @@ setInterval(() => quizTask.checkPremiumExpiry(bot), 60 * 60 * 1000);
 // ===== Battle Start Game (Pro Version) =====
 registerCommand(
   /^\/battle startgame(?: (\w{5,6}))?$/i,
-  "Start a battle game with the provided room code",
+  "/battle startgame Start a battle game with the provided room code",
   (msg, match) => {
     const chatId = msg.chat.id;
     const code = match[1] ? match[1].trim().toUpperCase() : null;
@@ -2870,7 +3011,7 @@ registerCommand(
 // ===== Battle Settings Command (Admin only) =====
 registerCommand(
   /^\/battle setsettings (\w{5,6}) (\d+)(?:m|M|min|MIN)? (\d+)(?:q|Q)?(?: (\d+)(?:s|S|sec|SEC)?)?$/,
-  "Set battle settings (admin only): duration, question count, per-question time",
+  "/battle setsettings Set battle settings (admin only): duration, question count, per-question time",
   (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -3008,7 +3149,7 @@ function extractNumbers(text) {
 
 registerCommand(
   /\/battle submit (\w{5}) (.+)/,
-  "Submit your answer for the current battle question",
+  "/battle submit Submit your answer for the current battle question",
   (msg, match) => {
     const chatId = msg.chat.id;
     const code = match[1].toUpperCase();
@@ -3256,7 +3397,7 @@ function announceWinners(b) {
 }
 registerCommand(
   /^\/battle team (red|blue)$/i,
-  "Join a battle team (red or blue)",
+  "/battle team red or blue Join a battle team (red or blue)",
   (msg, match) => {
     const chatId = msg.chat.id;
     const team = match[1].toLowerCase();
@@ -3295,7 +3436,7 @@ registerCommand(
 
 registerCommand(
   /^\/multibattle create(?: (\d+))?$/,
-  "Create a multi-question battle",
+  "/multibattle create Create a multi-question battle",
   (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -3342,7 +3483,7 @@ registerCommand(
 
 registerCommand(
   /^\/multibattle join (\w{5,6})$/,
-  "Join a multibattle room",
+  "/multibattle join Join a multibattle room",
   (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -3368,7 +3509,7 @@ registerCommand(
 
 registerCommand(
   /^\/multibattle start (\w{5,6})$/,
-  "Start a multibattle",
+  "/multibattle start Start a multibattle",
   (msg, match) => {
     const data = readBattles();
     const battle = data.multiBattles.find(b => b.code === match[1]);
@@ -3387,7 +3528,7 @@ registerCommand(
 
 registerCommand(
   /^\/multibattle ai (\d+)(?: (\w+))?$/,
-  "Create AI-generated multibattle",
+  "/multibattle ai 2 Create AI-generated multibattle",
   async (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -3440,7 +3581,7 @@ registerCommand(
 
 registerCommand(
   /\/battle delete (\S+)/,
-  "Delete a battle room (admin only)",
+  "/battle delte Delete a battle room (admin only)",
   async (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -3508,7 +3649,7 @@ registerCommand(
 // ===== List Active Battle Rooms =====
 registerCommand(
   /\/battle rooms$/,
-  "List all active battle rooms",
+  "/battle rooms List all active battle rooms",
   (msg) => {
     const chatId = msg.chat.id;
     const data = readBattles();
@@ -3545,7 +3686,7 @@ registerCommand(
 // Leave battle
 registerCommand(
   /\/battle leave (\S+)/,
-  "Leave a battle room",
+  "/battle leave <room code>Leave a battle room",
   (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -3586,7 +3727,7 @@ registerCommand(
 // Battle status
 registerCommand(
   /\/battle status (\w{5,6})/i,
-  "Check the status of a battle",
+  "/battle status Check the status of a battle",
   (msg, match) => {
     const chatId = msg.chat.id;
     const code = match[1].toUpperCase();
@@ -3629,7 +3770,7 @@ registerCommand(
 // New: Show remaining time in battle
 registerCommand(
   /\/battle timeleft (\w{5,6})/,            // regex
-  "Show remaining time in a battle",        // description (string)
+  "/battle timeleft Show remaining time in a battle",        // description (string)
   async (msg, match) => {                   // handler (function)
     const chatId = msg.chat.id;
     const code = (match[1] || "").toUpperCase();
