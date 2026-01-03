@@ -8,6 +8,55 @@ const express = require("express");
 const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
+const mongoose = require("mongoose");
+//const { getUserRankByCoins } = require("./db/LeaderboardService");
+
+
+function escapeHTML(text = "") {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("✅ MongoDB Connected"))
+.catch(err => console.error("❌ MongoDB Error:", err));
+//const User = require("./models/User");
+const User = require("./models/User");
+
+async function getUserRankByCoins(coins) {
+  // Count users who have MORE coins than this user
+  const higherUsers = await User.countDocuments({
+    coins: { $gt: coins }
+  });
+
+  // Rank is number of users ahead + 1
+  return higherUsers + 1;
+}
+async function getUser(tgUser) {
+  let user = await User.findOne({ tgId: tgUser.id.toString() });
+
+  if (!user) {
+    user = await User.create({
+      tgId: tgUser.id.toString(),
+      id: generateUniqueId(), // 🔥 INTERNAL ID
+      username: tgUser.username,
+      first_name: tgUser.first_name,
+      coins: 0,
+      points: 0,
+      lastActive: Date.now()
+    });
+  }
+
+  return user;
+}
+
+
 function readJSON(file) {
   try {
     return JSON.parse(fs.readFileSync(file));
@@ -30,7 +79,8 @@ const utils = require("./utils");
 const ADMIN_IDS = ["6499793556"];
 
 // Load data
-const users = Object.freeze(readJSON("./users.json") || {});
+//const users = Object.freeze(readJSON("./users.json") || {});
+
 
 //const users = readJSON("./users.json") || {};
 const leaderboard = readJSON("./leaderboard.json") || {};
@@ -392,49 +442,6 @@ try {
   console.error('❌ Error loading lessons:', err.message);
 }
 
-/* ===== Premium Users Storage =====
-let premiumUsers = [];
-const premiumFile = './premium.json';
-
-function isPremium(user) {
-  if (!user || !user.premium) return false;
-  return user.premium.isPremium && user.premium.expiresAt > Date.now();
-}
-
-
-
-function loadPremium() {
-  try {
-    premiumUsers = JSON.parse(fs.readFileSync(premiumFile, 'utf-8')).premium_users || [];
-  } catch (err) {
-    premiumUsers = [];
-  }
-}
-function savePremium() {
-  fs.writeFileSync(premiumFile, JSON.stringify({ premium_users: premiumUsers }, null, 2));
-}
-loadPremium();
-
-function isPremium(userId) {
-  return premiumUsers.includes(userId);
-}*/
-
-/*function requirePremium(chatId, userId) {
-  if (!isPremium(userId)) {
-    bot.sendMessage(chatId, 
-      `🚫 <b>Premium Feature Locked</b>\n\n` +
-      `This feature is only available for <b>Premium Members</b> 💎\n\n` +
-      `💳 <b>How to Unlock:</b>\n` +
-      `1️⃣ Send a message to <a href="https://t.me/KallmeTrust">Dev Trust</a> to buy Premium.\n` +
-      `2️⃣ After payment, you’ll be <b>automatically added</b> to our Premium Users List.\n\n` +
-      `🔗 <b>Premium Perks:</b>\n- Full Web Development Course\n- Complete Programming Cheat Sheet\n- Access to VIP Telegram Group`,
-      { parse_mode: 'HTML', disable_web_page_preview: true }
-    );
-    return false;
-  }
-  return true;
-}*/
-
 // ===== Bot Setup =====
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 //const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -558,7 +565,37 @@ const commandGroups = {
 let waitingForName = {};
 
 // Register user function (safe against missing data)
-function registerUser(msg, nameInput) {
+async function registerUser(msg, nameInput) {
+  if (!msg || !msg.chat || !msg.from) return;
+
+  const tgId = msg.from.id.toString();
+  let user = await User.findOne({ tgId });
+
+  if (!user) {
+    user = await User.create({
+      tgId: tgId,
+      id: generateUniqueId(), // internal bot ID
+      chatId: msg.chat.id.toString(),
+      displayName: nameInput || msg.from.first_name || "Unknown",
+      username: msg.from.username || "",
+      points: 0,
+      coins: 0,
+      battlesWon: 0,
+      battlesLost: 0,
+      lastActive: Date.now(),
+      registeredAt: Date.now(),
+      premium: { isPremium: false, expiresAt: null },
+    });
+  } else {
+    if (nameInput) user.displayName = nameInput;
+    user.lastActive = Date.now();
+    await user.save();
+  }
+
+  return user;
+}
+
+/*function registerUser(msg, nameInput) {
   if (!msg || !msg.chat || !msg.from) {
     console.error("registerUser called without a valid Telegram message object");
     return;
@@ -588,10 +625,56 @@ function registerUser(msg, nameInput) {
   }
 
   saveUsers(); // make sure to persist
-}
+}*/
 
 
 // Start command
+
+//const User = require("./models/User");
+
+setInterval(async () => {
+  try {
+    const expiredUsers = await User.find({
+      "premium.isPremium": true,
+      "premium.expiresAt": { $lte: Date.now() }
+    });
+
+    for (const user of expiredUsers) {
+      user.premium.isPremium = false;
+      await user.save();
+
+      console.log(`🔻 Premium expired for ${user.username || user.id}`);
+    }
+
+    if (expiredUsers.length > 0) {
+      console.log("✅ Premium expiration check completed");
+    }
+  } catch (err) {
+    console.error("❌ Premium expiry job failed:", err);
+  }
+}, 5 * 60 * 1000);
+
+
+  /*for (const userId in users) {
+    const { getUserByInternalId } = require("./db/userService");
+
+const user = await getUserByInternalId(userId);
+if (!user) return;
+
+
+    if (
+      user.premium &&
+      user.premium.isPremium &&
+      user.premium.expiresAt <= Date.now()
+    ) {
+      user.premium.isPremium = false;
+      changed = true;
+      console.log(`🔻 Premium expired for ${userId}`);
+    }
+  }
+
+  if (changed) saveUsers();
+}, 5 * 60 * 1000);
 
 const usersPath = './users.json';
 
@@ -616,7 +699,7 @@ setInterval(() => {
   }
 
   if (changed) saveUsers();
-}, 5 * 60 * 1000);
+}, 5 * 60 * 1000);*/
 
 // /start command
 const REQUIRED_CHANNEL = "@Ttrustbit"; // replace with your channel username
@@ -633,11 +716,11 @@ async function checkMembership(userId) {
 
 bot.onText(/\/start$/, async (msg) => {
   const chatId = msg.chat.id;
-  const userId = msg.from.id.toString();
-  const username = msg.from.username || "No username";
+  const tgId = msg.from.id.toString();
+  const username = msg.from.username || "";
 
-  // ✅ Check if user is in required channel
-  const isMember = await checkMembership(userId);
+  // Channel check
+  const isMember = await checkMembership(tgId);
   if (!isMember) {
     return bot.sendMessage(
       chatId,
@@ -645,55 +728,77 @@ bot.onText(/\/start$/, async (msg) => {
     );
   }
 
-  // ✅ Existing logic
-  if (!users[userId]) {
-    bot.sendMessage(
+  const { getUserByTelegramId } = require("./db/userService");
+  let user = await getUserByTelegramId(tgId);
+
+  if (!user) {
+    waitingForName[tgId] = { username };
+
+    return bot.sendMessage(
       chatId,
-      `👋 Welcome! Your Telegram ID is <b>${userId}</b>\nYour username: @${username}\n\nPlease enter your display name:`,
+      `👋 Welcome!\n\nPlease enter your display name:`,
       { parse_mode: "HTML" }
     );
-    waitingForName[userId] = { username };
-  } else {
-    giveDailyBonus(userId, chatId);
-    notifyUnreadMail(userId, chatId);
+  }
+
+  await giveDailyBonusMongo(user, chatId);
+  notifyUnreadMail(user.id, chatId);
+  showWelcomeMenu(msg);
+});
+
+
+
+// Capture name for first-time users
+bot.on("message", async (msg) => {
+  const tgId = msg.from.id.toString();
+
+  if (waitingForName[tgId] && msg.text && !msg.text.startsWith("/")) {
+    const name = msg.text.trim();
+    const { username } = waitingForName[tgId];
+
+    const User = require("./models/User");
+
+    const user = await User.create({
+      tgId,
+      id: generateUniqueId(),
+      username,
+      displayName: name,
+      coins: 0,
+      points: 0,
+      usageCount: 1,
+      lastLogin: new Date().toDateString(),
+      battlesWon: 0,
+      battlesLost: 0,
+      premium: { isPremium: false, expiresAt: null }
+    });
+
+    delete waitingForName[tgId];
+
+    bot.sendMessage(
+      msg.chat.id,
+      `✅ Thanks <b>${escapeHTML(name)}</b>! You are now registered.`,
+      { parse_mode: "HTML" }
+    );
+
+    notifyUnreadMail(user.id, msg.chat.id);
     showWelcomeMenu(msg);
   }
 });
 
 
-// Capture name for first-time users
-bot.on("message", (msg) => {
-  const userId = msg.from.id.toString();
+bot.on("message", async (msg) => {
+  if (!msg.from?.id) return;
 
-  if (waitingForName[userId] && msg.text && !msg.text.startsWith("/")) {
-    const { username } = waitingForName[userId];
-    const name = msg.text.trim();
+  const tgId = msg.from.id.toString();
+  const User = require("./models/User");
 
-    users[userId] = {
-      id: userId,
-      username,
-      displayName: name, // more consistent key name
-      joinDate: Date.now(),
-      coins: 0,
-      points: 0,
-      usageCount: 1,
-      lastLogin: Date.now(),
-      battlesWon: 0,
-      battlesLost: 0,
-      premium: { isPremium: false, expiresAt: null }
-    };
-
-    saveUsers();
-    delete waitingForName[userId];
-
-    bot.sendMessage(
-      msg.chat.id,
-      `✅ Thanks <b>${name}</b>! You are now registered.`,
-      { parse_mode: "HTML" }
+  try {
+    await User.updateOne(
+      { tgId: tgId },
+      { $set: { lastActive: Date.now() } }
     );
-
-    notifyUnreadMail(userId, msg.chat.id);
-    showWelcomeMenu(msg);
+  } catch (err) {
+    console.error("lastActive update failed:", err.message);
   }
 });
 
@@ -775,21 +880,24 @@ async function createDailyTournament() {
 }
 
 
-// Give daily login bonus
-function giveDailyBonus(userId, chatId) {
-  let user = users[userId];
+async function giveDailyBonusMongo(user, chatId) {
+  const today = new Date().toDateString();
+
   user.usageCount = (user.usageCount || 0) + 1;
 
-  const today = new Date().toDateString();
   if (user.lastLogin !== today) {
-    const bonus = 10; // coins
-    user.coins = (user.coins || 0) + bonus;
+    const bonus = 10;
+    user.coins += bonus;
     user.lastLogin = today;
-    bot.sendMessage(chatId, `🎁 Daily login bonus: +${bonus} coins!`);
-  }
 
-  saveUsers();
+    await user.save();
+
+    bot.sendMessage(chatId, `🎁 Daily login bonus: +${bonus} coins!`);
+  } else {
+    await user.save();
+  }
 }
+
 
 // Show welcome menu
 function showWelcomeMenu(msg) {
@@ -925,118 +1033,144 @@ function escapeMarkdown(text) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
 
-registerCommand(/\/check/, "Check your profile (coins & premium status)", (msg) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id.toString();
-  const user = users[userId];
+registerCommand(
+  /\/check/,
+  "Check your profile (coins & premium status)",
+  async (msg) => {
+    const chatId = msg.chat.id;
+    const tgId = msg.from.id.toString();
 
-  if (!user) {
-    return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
-  }
+    const { getUserByTelegramId } = require("./db/userService");
+    const user = await getUserByTelegramId(tgId);
 
-  const isPremium =
-    user.premium &&
-    user.premium.isPremium &&
-    user.premium.expiresAt > Date.now();
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
+    }
 
-  let premiumText = "❌ No";
+    const isPremium =
+      user.premium?.isPremium && user.premium.expiresAt > Date.now();
 
-  if (isPremium) {
-    const remainingMs = user.premium.expiresAt - Date.now();
-    premiumText = `✅ Yes\n⏳ <b>Remaining:</b> ${formatRemainingTime(remainingMs)}`;
-  }
+    let premiumText = "❌ No";
+    if (isPremium) {
+      premiumText =
+        `✅ Yes\n⏳ <b>Remaining:</b> ${formatRemainingTime(
+          user.premium.expiresAt - Date.now()
+        )}`;
+    }
 
-  bot.sendMessage(
-    chatId,
-    `📌 <b>Your Profile</b>\n\n` +
-    `💰 Coins: <b>${user.coins || 0}</b>\n` +
-    `💎 Premium: ${premiumText}`,
-    { parse_mode: "HTML" }
-  );
-});
-
-
-
-registerCommand(/\/profile(?:\s+(\S+))?/, "View your profile or another user's profile", (msg, match) => {
-  const chatId = msg.chat.id;
-  const fromId = msg.from.id.toString();
-  const requestedArg = match[1]?.trim(); // could be ID or username
-
-  const user = users[fromId];
-  if (!user) {
-    return bot.sendMessage(chatId, "❌ You are not registered. Please use /start to register first.");
-  }
-
-  // Determine target user
-  let targetUser;
-  if (requestedArg) {
-    // Search by ID or username
-    targetUser = Object.values(users).find(u =>
-      u.id === requestedArg ||
-      (u.username && u.username.toLowerCase() === requestedArg.toLowerCase())
+    bot.sendMessage(
+      chatId,
+      `📌 <b>Your Profile</b>\n\n` +
+      `🆔 ID: <code>${user.id}</code>\n` +
+      `💰 Coins: <b>${user.coins}</b>\n` +
+      `💎 Premium: ${premiumText}`,
+      { parse_mode: "HTML" }
     );
-    if (!targetUser) {
-      return bot.sendMessage(chatId, `❌ No user found with ID or username "${requestedArg}".`);
-    }
-  } else {
-    targetUser = user; // self
   }
+);
 
-  // Premium & tier calculation
-  let tier = "free";
-  let tierIcon = "🆓";
-  let premiumText = "❌ No";
 
-  if (targetUser.premium?.isPremium && targetUser.premium.expiresAt > Date.now()) {
-    const msRemaining = targetUser.premium.expiresAt - Date.now();
-    const daysRemaining = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((msRemaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((msRemaining % (1000 * 60)) / 1000);
 
-    // Assign tier based on remaining days
-    if (daysRemaining >= 30) {
-      tier = "legend";
-      tierIcon = "👑";
-    } else if (daysRemaining >= 15) {
-      tier = "vip";
-      tierIcon = "💎";
-    } else if (daysRemaining >= 8) {
-      tier = "pro";
-      tierIcon = "🔥";
-    } else {
-      tier = "premium";
-      tierIcon = "🌟";
+
+registerCommand(
+  /\/profile(?:\s+(\S+))?/,
+  "View your profile or another user's profile",
+  async (msg, match) => {
+    const chatId = msg.chat.id;
+    const fromTgId = msg.from.id.toString();
+    const requestedArg = match[1]?.trim();
+
+    const { getUserByTelegramId, getUserByInternalId, getUserByUsername } =
+      require("./db/userService");
+
+    const user = await getUserByTelegramId(fromTgId);
+    if (!user) {
+      return bot.sendMessage(
+        chatId,
+        "❌ You are not registered. Please use /start first."
+      );
     }
 
-    premiumText = `✅ Yes (${daysRemaining}d ${hours}h ${minutes}m ${seconds}s left)`;
-  }
+    let targetUser = user;
 
- // Display name/username with premium badge
-let nameDisplay = targetUser.name || targetUser.displayName || "Unknown";
-if (targetUser.premium?.isPremium && targetUser.premium.expiresAt > Date.now()) {
-    nameDisplay = "💎 " + nameDisplay; // Add premium badge
-}
-nameDisplay = escapeMarkdown(nameDisplay);
+    // 🔍 lookup other user
+    if (requestedArg) {
+      targetUser =
+        (await getUserByInternalId(requestedArg)) ||
+        (await getUserByUsername(requestedArg));
 
-const usernameDisplay = targetUser.username ? "@" + escapeMarkdown(targetUser.username) : "No username";
-const joinedDate = targetUser.joinDate ? new Date(targetUser.joinDate).toDateString() : "Unknown";
-const coins = targetUser.coins || 0;
+      if (!targetUser) {
+        return bot.sendMessage(
+          chatId,
+          `❌ No user found with ID or username "${requestedArg}".`
+        );
+      }
+    }
 
+    // ===== Premium / Tier =====
+    let tier = "free";
+    let tierIcon = "🆓";
+    let premiumText = "❌ No";
 
-  // Build profile message
-  const profileText =
-`📜 *User Profile*
+    if (
+      targetUser.premium?.isPremium &&
+      targetUser.premium.expiresAt > Date.now()
+    ) {
+      const ms = targetUser.premium.expiresAt - Date.now();
+      const days = Math.floor(ms / 86400000);
+      const hours = Math.floor((ms % 86400000) / 3600000);
+      const minutes = Math.floor((ms % 3600000) / 60000);
+      const seconds = Math.floor((ms % 60000) / 1000);
+
+      if (days >= 30) {
+        tier = "legend";
+        tierIcon = "👑";
+      } else if (days >= 15) {
+        tier = "vip";
+        tierIcon = "💎";
+      } else if (days >= 8) {
+        tier = "pro";
+        tierIcon = "🔥";
+      } else {
+        tier = "premium";
+        tierIcon = "🌟";
+      }
+
+      premiumText = `✅ Yes (${days}d ${hours}h ${minutes}m ${seconds}s)`;
+    }
+
+    let nameDisplay =
+      targetUser.displayName || targetUser.name || "Unknown";
+
+    if (
+      targetUser.premium?.isPremium &&
+      targetUser.premium.expiresAt > Date.now()
+    ) {
+      nameDisplay = "💎 " + nameDisplay;
+    }
+
+    const usernameDisplay = targetUser.username
+      ? "@" + escapeMarkdown(targetUser.username)
+      : "No username";
+
+    const joinedDate = targetUser.createdAt
+      ? new Date(targetUser.createdAt).toDateString()
+      : "Unknown";
+
+    const profileText = `📜 *User Profile*
 ────────────────
-👤 Name: *${nameDisplay}*
+👤 Name: *${escapeMarkdown(nameDisplay)}*
 💬 Username: ${usernameDisplay}
-🏆 Coins: *${coins}*
+🏆 Coins: *${targetUser.coins || 0}*
 ${tierIcon} Tier: *${tier.toUpperCase()}*
 💎 Premium: ${premiumText}
 📅 Joined: *${joinedDate}*`;
 
-  bot.sendMessage(chatId, profileText, { parse_mode: "Markdown" });
-});
+    bot.sendMessage(chatId, profileText, { parse_mode: "Markdown" });
+  }
+);
+
+
 
 
 
@@ -1063,14 +1197,30 @@ ${listText}
 const premiumTopics = ['cheatsheetwebdev', 'simplewebcreating'];
 
 // ===== /start_<topic> command =====
-registerCommand(/\/start_(\w+)/, "Start a course by topic name (example: /start_python)", (msg, match) => {
+registerCommand(/\/start_(\w+)/, "Start a course by topic name (example: /start_python)", async (msg, match) => {
   const chatId = msg.chat.id;
   const topic = match[1].toLowerCase();
 
-  // Check premium restriction
-  if (premiumTopics.includes(topic) && !requirePremium(chatId, msg.from.id)) {
-    return bot.sendMessage(chatId, "❌ This course is premium only. Please upgrade to access it.");
+
+  async function requirePremiumMongo(chatId, tgId) {
+  const { getUserByTelegramId } = require("./db/userService");
+  const user = await getUserByTelegramId(tgId.toString());
+
+  if (
+    !user ||
+    !user.premium?.isPremium ||
+    user.premium.expiresAt <= Date.now()
+  ) {
+    bot.sendMessage(chatId, "❌ This feature is Premium-only.");
+    return false;
   }
+  return true;
+}
+  // Check premium restriction
+ if (premiumTopics.includes(topic) && !(await requirePremiumMongo(chatId, msg.from.id))) {
+  return;
+}
+
 
   // Check if lessons exist
   if (!lessons[topic]) {
@@ -1098,6 +1248,16 @@ function setUserProgress(userId, course, index) {
   if (!userProgress[userId]) userProgress[userId] = {};
   userProgress[userId][course] = index;
 }
+bot.onText(/\/testmail/, async (msg) => {
+  const { addMailToUser } = require("./db/mailService");
+
+  await addMailToUser(msg.from.id, {
+    subject: "✅ Test Mail",
+    body: "If you see this, inbox works 🎉"
+  });
+
+  bot.sendMessage(msg.chat.id, "📬 Test mail sent. Use /inbox");
+});
 
 registerCommand(/\/next(?:\s+(\S+))?/, "Go to the next lesson (default: cheatsheetwebdev)", (msg, match) => {
   const chatId = msg.chat.id;
@@ -1184,47 +1344,38 @@ function splitMessage(text, maxLength = 4000) {
 registerCommand(
   /\/premiuminfo/,
   "Show your premium benefits and expiry",
-  (msg) => {
+  async (msg) => {
     const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
-    const user = users[userId];
+    const tgId = msg.from.id.toString();
+
+    const { getUserByTelegramId } = require("./db/userService");
+    const user = await getUserByTelegramId(tgId);
 
     if (!user) {
-      return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start.");
     }
 
-    const isPremium =
-      user.premium &&
-      user.premium.isPremium &&
-      user.premium.expiresAt > Date.now();
-
-    if (!isPremium) {
+    if (
+      !user.premium?.isPremium ||
+      user.premium.expiresAt <= Date.now()
+    ) {
       return bot.sendMessage(
         chatId,
-        `💎 You are currently not a Premium member.\n\n` +
-          `🔗 To get premium, use /buypremium <days> or contact admin.`,
+        "💎 You are not a Premium member.\nUse /buypremium <days>."
       );
     }
 
     const remainingMs = user.premium.expiresAt - Date.now();
 
-    const perks = [
-      "✅ Unlimited AI requests",
-      "✅ Access to coding tutor PRO lessons",
-      "✅ Early access to new features",
-      "✅ 24/7 priority support",
-      "✅ No cooldown on commands",
-    ];
-
     bot.sendMessage(
       chatId,
       `💎 <b>Premium Info</b>\n\n` +
-        `⏳ Remaining Time: ${formatRemainingTime(remainingMs)}\n\n` +
-        `✨ <b>Perks:</b>\n${perks.map(p => `- ${p}`).join("\n")}`,
+        `⏳ Remaining: ${formatRemainingTime(remainingMs)}`,
       { parse_mode: "HTML" }
     );
   }
 );
+
 
 
 registerCommand(
@@ -1266,134 +1417,132 @@ function cooldownNotExpired(userId, seconds = 15) {
 }
 
 bot.onText(/^\/nanoai(?:\s+(.+))?/, async (msg, match) => {
-  
   const chatId = msg.chat.id;
-  const userId = msg.from.id.toString();
-  const user = users[userId];
-  const text = match[1];
+  const tgId = msg.from.id.toString();
 
- // 🚀 PREMIUM PRIORITY
- // ⏳ Cooldown applies ONLY to free users
-if (!isPremium(user)) {
-  if (cooldownNotExpired(userId, 15)) {
+  const { getUserByTelegramId } = require("./db/userService");
+  const user = await getUserByTelegramId(tgId);
+  if (!user) return;
+
+  const isPremiumUser =
+    user.premium?.isPremium && user.premium.expiresAt > Date.now();
+
+  if (!isPremiumUser && cooldownNotExpired(tgId, 15)) {
     return bot.sendMessage(
       chatId,
-      "⏳ Slow down! Free users can use this every 15 seconds.\n💎 Premium users have instant access."
+      "⏳ Free users can use this every 15 seconds.\n💎 Premium = no cooldown."
     );
   }
-}
 
-
-  console.log("PREMIUM STATE:", users[userId].premium);
-
-
-  const prompt = `my name is TrustBit coding bot. I am a helpful programming assistant created by my lovely owner kallmetrust and Lord Samuel. I love solving coding problems and chatting like a human. I am also here to help us code.`;
-
-  // Case 1: only /nano
+  const text = match[1];
   if (!text) {
     return bot.sendMessage(
       chatId,
-      `${prompt}\n\n📌 *Example:* /nanoai What is a function in Python?`,
-      { parse_mode: "Markdown" }
+      "my name is TrustBit coding bot. I am a helpful programming assistant created by my lovely owner Mr Trust and Lord samuel. I love solving coding problems and chatting like   a human. I am also here to help u code 📌 Example:\n/nanoai What is a function in Python?"
     );
   }
 
-  // Case 2: user provided text
   try {
-    const aiUrl = `https://api-rebix.vercel.app/api/gptlogic?q=${encodeURIComponent(
-      text
-    )}&prompt=${encodeURIComponent(prompt)}`;
-
-    const res = await fetch(aiUrl);
-    if (!res.ok) throw new Error(`API error: ${res.statusText}`);
-
+    const res = await fetch(
+      `https://api-rebix.vercel.app/api/gptlogic?q=${encodeURIComponent(text)}`
+    );
     const data = await res.json();
-    const replyText = data.response || "⚠️ No response from AI.";
 
-    // Split long responses safely
-    const chunks = splitMessage(replyText);
+    const chunks = splitMessage(data.response || "⚠️ No response.");
     for (const chunk of chunks) {
       await bot.sendMessage(chatId, chunk);
     }
   } catch (err) {
-    bot.sendMessage(chatId, `❌ An error occurred: ${err.message}`);
+    bot.sendMessage(chatId, "❌ AI error.");
   }
 });
+
 
 
 // ==================== /mystats ====================
 
 // ===== /mystats command =====
-registerCommand(/\/mystats/, "Show your profile stats", (msg) => {
-  const userId = msg.from.id.toString();
-  const user = users[userId];
+registerCommand(
+  /\/mystats/,
+  "Show your profile stats",
+  async (msg) => {
+    const chatId = msg.chat.id;
+    const tgId = msg.from.id.toString();
 
-  if (!user) {
-    return bot.sendMessage(
-      msg.chat.id,
-      "❌ You are not registered yet. Use /start to begin."
-    );
-  }
+    const { getUserRankByCoins } = require("./db/LeaderboardService");
 
-  // Leaderboard rank
-  const sortedUsers = Object.values(users).sort((a, b) => (b.coins || 0) - (a.coins || 0));
-  const rank = sortedUsers.findIndex(u => u.telegramId === userId || u.id === userId) + 1;
+    const { getUserByTelegramId} =
+      require("./db/userService");
 
-  // Premium & tier calculation
-  let tier = "free";
-  let tierIcon = "🆓";
-  let premiumText = "❌ Not Premium";
-
-  let nameDisplay = user.name || user.displayName || "Unknown";
-
-  if (user.premium?.isPremium && user.premium.expiresAt > Date.now()) {
-    const msRemaining = user.premium.expiresAt - Date.now();
-    const days = Math.floor(msRemaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((msRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((msRemaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((msRemaining % (1000 * 60)) / 1000);
-
-    // Assign tier based on remaining days
-    if (days >= 30) {
-      tier = "legend";
-      tierIcon = "👑";
-    } else if (days >= 15) {
-      tier = "vip";
-      tierIcon = "💎";
-    } else if (days >= 8) {
-      tier = "pro";
-      tierIcon = "🔥";
-    } else {
-      tier = "premium";
-      tierIcon = "🌟";
+    const user = await getUserByTelegramId(tgId);
+    if (!user) {
+      return bot.sendMessage(
+        chatId,
+        "❌ You are not registered yet. Use /start."
+      );
     }
 
-    premiumText = `${tierIcon} Premium (${days}d ${hours}h ${minutes}m ${seconds}s left)`;
-    nameDisplay = "💎 " + nameDisplay; // add badge to name
-  }
+    // 🏆 leaderboard rank (Mongo)
+    const rank = await getUserRankByCoins(user.coins || 0);
 
-  // Badges
-  const badgeList = (user.badges && user.badges.length > 0) ? user.badges.join(" ") : "None";
+    let tier = "free";
+    let tierIcon = "🆓";
+    let premiumText = "❌ Not Premium";
+    let nameDisplay = user.displayName || user.name || "Unknown";
 
-  const infoMsg = `
+    if (
+      user.premium?.isPremium &&
+      user.premium.expiresAt > Date.now()
+    ) {
+      const ms = user.premium.expiresAt - Date.now();
+      const days = Math.floor(ms / 86400000);
+      const hours = Math.floor((ms % 86400000) / 3600000);
+      const minutes = Math.floor((ms % 3600000) / 60000);
+      const seconds = Math.floor((ms % 60000) / 1000);
+
+      if (days >= 30) {
+        tier = "legend";
+        tierIcon = "👑";
+      } else if (days >= 15) {
+        tier = "vip";
+        tierIcon = "💎";
+      } else if (days >= 8) {
+        tier = "pro";
+        tierIcon = "🔥";
+      } else {
+        tier = "premium";
+        tierIcon = "🌟";
+      }
+
+      premiumText = `${tierIcon} Premium (${days}d ${hours}h ${minutes}m ${seconds}s)`;
+      nameDisplay = "💎 " + nameDisplay;
+    }
+
+    const badgeList =
+      user.badges?.length > 0 ? user.badges.join(" ") : "None";
+
+    const infoMsg = `
 <b>📜 Your Info</b>
+────────────────
 👤 Name: <b>${escapeHTML(nameDisplay)}</b>
 💬 Username: @${user.username || "No username"}
 💰 Coins: <b>${user.coins || 0}</b>
-📅 Joined: <b>${user.joinDate ? new Date(user.joinDate).toDateString() : "Unknown"}</b>
+📅 Joined: <b>${user.createdAt?.toDateString() || "Unknown"}</b>
 🔥 Daily Streak: <b>${user.usageCount || 0}</b> days
 🏆 Leaderboard Rank: <b>#${rank}</b>
 ${premiumText}
 🎖 Badges: ${badgeList}
 `;
 
-  bot.sendMessage(msg.chat.id, infoMsg, { parse_mode: "HTML" });
-});
+    bot.sendMessage(chatId, infoMsg, { parse_mode: "HTML" });
+  }
+);
+
 
 
 
 // ===== /reset command =====
-registerCommand(/\/reset/, "Reset your current course progress", (msg) => {
+registerCommand(/\/reset/, "Reset your current course progress", async (msg) => {
   const chatId = msg.chat.id;
 
   if (!userProgress[chatId]) {
@@ -1403,7 +1552,7 @@ registerCommand(/\/reset/, "Reset your current course progress", (msg) => {
   const topic = userProgress[chatId].topic;
 
   // Premium restriction
-  if (premiumTopics.includes(topic) && !requirePremium(chatId, msg.from.id)) {
+  if (premiumTopics.includes(topic) && !(await requirePremiumMongo(chatId, msg.from.id))) {
     delete userProgress[chatId];
     return;
   }
@@ -1448,37 +1597,40 @@ bot.onText(/^\/reply\s+(\d+)\s+(.+)/, async (msg, match) => {
   }
 });
 
-bot.onText(/^\/support(?:@[\w_]+)?(?:\s+([\s\S]+))?$/, async (msg, match) => {
+bot.onText(/^\/support(?:\s+([\s\S]+))?$/, async (msg, match) => {
   const chatId = msg.chat.id;
-  const userId = msg.from.id.toString();
-  const user = users[userId];
-  const message = match[1];
+  const tgId = msg.from.id.toString();
 
-  // 🔍 DEBUG (TEMPORARY)
-  console.log("SUPPORT PREMIUM STATE:", user?.premium);
+  const { getUserByTelegramId } = require("./db/userService");
+  const user = await getUserByTelegramId(tgId);
+  if (!user) return;
 
-  if (!isPremium(user)) {
+  const isPremium =
+    user.premium?.isPremium && user.premium.expiresAt > Date.now();
+
+  if (!isPremium) {
     return bot.sendMessage(chatId, "🚫 Premium only feature.");
   }
 
+  const message = match[1];
   if (!message) {
     return bot.sendMessage(
       chatId,
-      "❓ Please include a message.\n\nExample:\n/support My bot is broken"
+      "❓ Usage:\n/support My bot is broken"
     );
   }
 
   await bot.sendMessage(
     ADMIN_ID,
 `💎 PREMIUM SUPPORT
-
-🆔 User ID: ${userId}
+🆔 User ID: ${tgId}
 📩 Message:
 ${message}`
   );
 
-  bot.sendMessage(chatId, "✅ Support message sent. You’ll get a reply here.");
+  bot.sendMessage(chatId, "✅ Support message sent.");
 });
+
 
 
 
@@ -1579,44 +1731,54 @@ registerCommand(/\/search(?:\s+(.+))?/, "Search for lessons by keyword", (msg, m
 
 
 // ===== /run js command (simple sandboxed eval) =====
-registerCommand(/\/run\s+js(?:\s+([\s\S]+))?/, "Run JavaScript code", async (msg, match) => {
+registerCommand(
+  /\/run\s+js(?:\s+([\s\S]+))?/,
+  "Run JavaScript code",
+  async (msg, match) => {
     const chatId = msg.chat.id;
-  const userId = msg.from.id.toString();
-  const user = users[userId];
-  const text = match[1];
-  const code = match[1];
+    const tgId = msg.from.id.toString();
 
-  if (!isPremium(user)) {
-  return bot.sendMessage(chatId, "🚫 Premium only feature.");
-}
+    const { getUserByTelegramId } = require("./db/userService");
+    const user = await getUserByTelegramId(tgId);
+    if (!user) return;
 
+    const isPremium =
+      user.premium?.isPremium && user.premium.expiresAt > Date.now();
 
-  if (!code) {
-    return bot.sendMessage(chatId, "❗ Usage: /run js <your JavaScript code>");
-  }
-
-  try {
-    let output = "";
-    const originalConsoleLog = console.log;
-    console.log = (...args) => {
-      output += args.join(" ") + "\n";
-    };
-
-    let result = eval(code); // ⚠️ risky, sandboxing recommended
-
-    console.log = originalConsoleLog;
-
-    if (result !== undefined && result !== null) {
-      output += result.toString();
+    if (!isPremium) {
+      return bot.sendMessage(chatId, "🚫 Premium only feature.");
     }
 
-    if (!output.trim()) output = "No output";
+    const code = match[1];
+    if (!code) {
+      return bot.sendMessage(chatId, "❗ Usage: /run js <code>");
+    }
 
-    await bot.sendMessage(chatId, `<pre>${escapeHTML(output)}</pre>`, { parse_mode: "HTML" });
-  } catch (e) {
-    await bot.sendMessage(chatId, `❌ Error: <b>${escapeHTML(e.message)}</b>`, { parse_mode: "HTML" });
+    try {
+      let output = "";
+      const originalLog = console.log;
+      console.log = (...args) => (output += args.join(" ") + "\n");
+
+      let result = eval(code);
+      console.log = originalLog;
+
+      if (result !== undefined) output += result;
+
+      await bot.sendMessage(
+        chatId,
+        `<pre>${escapeHTML(output || "No output")}</pre>`,
+        { parse_mode: "HTML" }
+      );
+    } catch (e) {
+      bot.sendMessage(
+        chatId,
+        `❌ Error: <b>${escapeHTML(e.message)}</b>`,
+        { parse_mode: "HTML" }
+      );
+    }
   }
-});
+);
+
 
 
 // ===== /ping command =====
@@ -1951,60 +2113,83 @@ function genRoomCode() {
 }
 
 // Broadcast only newly created battles with no password (adjust if needed)
-function broadcastNewRooms() {
+
+async function broadcastNewRooms() {
   const data = readBattles();
 
-  // Filter battles not broadcasted yet and with no password (assuming no password for now)
-  const newRooms = data.battles.filter(battle => !battle.broadcasted);
+  const newRooms = data.battles.filter(
+    battle => !battle.broadcasted && battle.status === "waiting"
+  );
 
   if (newRooms.length === 0) return;
 
   const message = newRooms
-    .map(
-      (room) =>
-        `Room: ${room.code}\nHost: ${room.host}\nProblem: ${room.problem.title}\nPlayers: ${Object.keys(room.players).length}\nEnds in: ${Math.ceil(
-          (room.endsAt - Date.now()) / 60000
-        )} min`
+    .map(room =>
+      `🏟 <b>New Battle Room</b>
+🆔 Code: <b>${room.code}</b>
+👑 Host: ${room.hostName}
+📖 Problem: ${room.problem.title}
+👥 Players: ${Object.keys(room.players).length}/10
+⏱ Ends in: ${Math.ceil((room.endsAt - Date.now()) / 60000)} min`
     )
-    .join('\n\n');
+    .join("\n\n");
 
-  // Broadcast to all users
-  Object.keys(users).forEach((chatId) => {
-    bot.sendMessage(chatId, `📢 New Battle Rooms Open:\n\n${message}`);
-  });
+  try {
+    const User = require("./models/User");
 
-  // Mark these rooms as broadcasted
-  newRooms.forEach((room) => {
-    room.broadcasted = true;
-  });
+    // 🎯 Fetch active users only (last 7 days)
+    const users = await User.find(
+      { lastActive: { $gte: Date.now() - 7 * 24 * 60 * 60 * 1000 } },
+      { tgId: 1 }
+    );
 
-  // Save battles.json after updating broadcasted flag
-  writeBattles(data);
+    for (const u of users) {
+      if (!u.telegramId) continue;
+
+      bot.sendMessage(
+        u.telegramId,
+        `📢 <b>New Battle Rooms Open!</b>\n\n${message}`,
+        { parse_mode: "HTML" }
+      ).catch(() => {}); // ignore blocked users
+    }
+
+    // ✅ Mark rooms as broadcasted
+    newRooms.forEach(room => {
+      room.broadcasted = true;
+    });
+
+    writeBattles(data);
+
+  } catch (err) {
+    console.error("❌ Broadcast failed:", err);
+  }
 }
+
 
 // /battle start command
 registerCommand(
   /\/battle create(?:\s+(\S+))?$/,
-  "/battle create Start a new battle (optionally password-protected)",
-  (msg, match) => {
-
+  "/battle create Start a new battle",
+  async (msg, match) => {
     const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
+    const tgId = msg.from.id.toString();
     const username = msg.from.username || msg.from.first_name || "Unknown";
     const password = match[1] || "";
-    
 
     const data = readBattles();
-    const user = users[userId];
+
+    const { getUserByTelegramId, updateUserCoins } =
+      require("./db/userService");
+
+    const user = await getUserByTelegramId(tgId);
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start.");
+    }
 
     // 🔒 Prevent duplicate waiting battles
     const existing = data.battles.find(
-      b => b.host === userId && b.status === "waiting"
+      b => b.host === tgId && b.status === "waiting"
     );
-    // Only allow if user has enough coins
-const entryFee = 50; // coins
-if ((users[uid].coins || 0) < entryFee) return bot.sendMessage(chatId, "🚫 Not enough coins to create this battle.");
-users[uid].coins -= entryFee;
 
     if (existing) {
       return bot.sendMessage(
@@ -2014,40 +2199,46 @@ users[uid].coins -= entryFee;
       );
     }
 
+    // 💰 Entry fee (Mongo)
+    const entryFee = 50;
+    if ((user.coins || 0) < entryFee) {
+      return bot.sendMessage(chatId, "🚫 Not enough coins to create this battle.");
+    }
 
-    // 🎯 Pick random problem
-    const problem = battleProblems[Math.floor(Math.random() * battleProblems.length)];
+    await updateUserCoins(tgId, -entryFee);
 
-    // ⏱ Duration rules
+    // 🎯 Random problem
+    const problem =
+      battleProblems[Math.floor(Math.random() * battleProblems.length)];
+
+    // ⏱ Premium duration
     const isPremium =
-      user?.premium?.isPremium && user.premium.expiresAt > Date.now();
+      user.premium?.isPremium && user.premium.expiresAt > Date.now();
 
     const durationMinutes = isPremium ? 10 : 5;
     const durationMs = durationMinutes * 60 * 1000;
-
-    // 🏷 Tier label
-    const tier = isPremium ? "premium" : "free";
 
     const code = genRoomCode();
 
     const battle = {
       code,
-      host: userId,
+      host: tgId,
       hostName: username,
-
       password,
-      tier,
-      mode: "classic", // future: blitz, ranked, team
+
+      tier: isPremium ? "premium" : "free",
+      mode: "classic",
 
       problem,
       createdAt: Date.now(),
       endsAt: Date.now() + durationMs,
 
-      status: "waiting", // waiting | running | finished
+      status: "waiting",
 
       players: {
-        [userId]: {
-          id: userId,
+        [tgId]: {
+          tgId,
+          internalId: user._id.toString(),
           name: username,
           joinedAt: Date.now(),
           submitted: false,
@@ -2056,7 +2247,8 @@ users[uid].coins -= entryFee;
         }
       },
 
-      submissions: []
+      submissions: [],
+      broadcasted: false
     };
 
     data.battles.push(battle);
@@ -2064,14 +2256,16 @@ users[uid].coins -= entryFee;
 
     bot.sendMessage(
       chatId,
-      `🎯 <b>Battle Created!</b>\n\n` +
-      `🆔 Code: <b>${code}</b>\n` +
-      `${password ? "🔒 Password Protected" : "🔓 Open Room"}\n` +
-      `🏷 Tier: <b>${tier.toUpperCase()}</b>\n` +
-      `📖 Problem: <b>${problem.title}</b>\n` +
-      `⏱ Duration: ${durationMinutes} minutes\n\n` +
-      `👥 Join with:\n<code>/battle join ${code}${password ? " " + password : ""}</code>\n\n` +
-      `▶️ Start battle:\n<code>/battle startgame ${code}</code>`,
+      `🎯 <b>Battle Created!</b>
+
+🆔 Code: <b>${code}</b>
+${password ? "🔒 Password Protected" : "🔓 Open Room"}
+🏷 Tier: <b>${battle.tier.toUpperCase()}</b>
+📖 Problem: <b>${problem.title}</b>
+⏱ Duration: ${durationMinutes} minutes
+
+👥 Join with:
+<code>/battle join ${code}${password ? " " + password : ""}</code>`,
       { parse_mode: "HTML" }
     );
 
@@ -2079,65 +2273,8 @@ users[uid].coins -= entryFee;
   }
 );
 
-/*registerCommand(/\/battle create(?:\s+(\S+))?$/, "Start a new battle (optionally password-protected)", (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  const username = msg.from.username || msg.from.first_name || "Unknown";
 
-  const password = match[1] || ""; // optional password: /battle start mypass
 
-  const data = readBattles();
-
-  // ensure no duplicate active battles from the same user
-  const existing = data.battles.find(b => b.host === userId && b.status === "waiting");
-  if (existing) {
-    return bot.sendMessage(chatId, `⚠️ You already have a waiting battle with code <b>${existing.code}</b>.`, { parse_mode: "HTML" });
-  }
-
-  // pick random problem
-  const problem = battleProblems[Math.floor(Math.random() * battleProblems.length)];
-
-  const code = genRoomCode();
-  const durationMs = 5 * 60 * 1000; // default 5 minutes
-
-  const battle = {
-    code,
-    host: userId,
-    password,
-    problem,
-    createdAt: Date.now(),
-    endsAt: Date.now() + durationMs,
-    status: "waiting", // waiting | running | finished
-    players: {
-      [userId]: {
-        id: userId,
-        name: username,
-        submitted: false,
-        solved: false,
-        time: null
-      }
-    },
-    submissions: []
-  };
-
-  data.battles.push(battle);
-  writeBattles(data);
-
-  bot.sendMessage(
-    chatId,
-    `🎯 <b>Battle Created!</b>\n\n` +
-    `📌 Code: <b>${code}</b>\n` +
-    `${password ? "🔒 Password Protected" : "🔓 Open Room"}\n` +
-    `📖 Question: <b>${problem.title}</b>\n` +
-    `⏱ Duration: 5 minutes\n\n` +
-    `👥 To join: <code>/battle join ${code}${password ? " " + password : ""}</code>\n` +
-    `▶️ When ready, host or any player can start with <code>/battle startgame ${code}</code>`,
-    { parse_mode: "HTML" }
-  );
-
-  // notify global room list
-  broadcastNewRooms();
-});*/
 
 registerCommand(
   /^\/help$/,
@@ -2145,15 +2282,13 @@ registerCommand(
   (msg) => {
     try {
       const chatId = msg.chat.id;
+
       const helpText = commands
         .map(cmd => {
-          try {
-            const match = cmd.regex?.toString().match(/\/\w+/);
-            return match ? `- ${match[0]} → ${cmd.description}` : null;
-          } catch (e) {
-            console.error("Error parsing command:", cmd, e);
-            return null;
-          }
+          const match = cmd.regex?.toString().match(/\/\w+/);
+          if (!match) return null;
+
+          return `- <code>${escapeHTML(match[0])}</code> → ${escapeHTML(cmd.description)}`;
         })
         .filter(Boolean)
         .join("\n");
@@ -2172,70 +2307,26 @@ registerCommand(
 
 
 
-// Join battle room (limit 10 max)
-/*registerCommand(/\/battle join (\S+)(?:\s+(\S+))?$/, "Join a battle room", (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  const username = msg.from.username || msg.from.first_name || "Unknown";
 
-  const code = match[1];
-  const passwordAttempt = match[2] || "";
-
-  const data = readBattles();
-  const battle = data.battles.find(b => b.code === code);
-
-  if (!battle) {
-    return bot.sendMessage(chatId, `❌ Room code <b>${code}</b> not found.`, { parse_mode: "HTML" });
-  }
-
-  if (battle.status !== "waiting") {
-    return bot.sendMessage(chatId, `⚠️ Room <b>${code}</b> has already started or finished.`, { parse_mode: "HTML" });
-  }
-
-  if (battle.password && battle.password !== passwordAttempt) {
-    return bot.sendMessage(chatId, `🔒 Incorrect password for room <b>${code}</b>.`, { parse_mode: "HTML" });
-  }
-
-  if (Object.keys(battle.players).length >= 10) {
-    return bot.sendMessage(chatId, `❌ Room <b>${code}</b> is full (max 10 players).`, { parse_mode: "HTML" });
-  }
-
-  if (battle.players[userId]) {
-    return bot.sendMessage(chatId, `❌ You already joined room <b>${code}</b>.`, { parse_mode: "HTML" });
-  }
-
-  battle.players[userId] = {
-    id: userId,
-    name: username,
-    submitted: false,
-    solved: false,
-    time: null
-  };
-
-  writeBattles(data);
-
-  bot.sendMessage(chatId, `✅ You joined the battle room <b>${code}</b>!`, { parse_mode: "HTML" });
-
-  // notify host (if not the same user)
-  if (battle.host !== userId) {
-    bot.sendMessage(battle.host, `👤 ${username} joined your battle <b>${code}</b>.`, { parse_mode: "HTML" });
-  }
-});*/
 
 // ===== Battle Join (Pro version) =====
 registerCommand(
   /\/battle join (\S+)(?:\s+(\S+))?$/,
   "/battle join <room> Join a battle room",
-  (msg, match) => {
+  async (msg, match) => {
     const chatId = msg.chat.id;
-    const userId = msg.from.id.toString();
+    const tgId = msg.from.id.toString();
     const username = msg.from.username || msg.from.first_name || "Unknown";
 
     const code = match[1];
     const passwordAttempt = match[2] || "";
 
     const data = readBattles();
-    const battle = data.battles.find(b => b.code === code);
+    //const battle = data.battles.find(b => b.code === code);
+    const Battle = require("./models/Battle");
+
+const battle = await Battle.findOne({ code });
+
 
     if (!battle) {
       return bot.sendMessage(chatId, `❌ Room code <b>${code}</b> not found.`, { parse_mode: "HTML" });
@@ -2253,42 +2344,67 @@ registerCommand(
       return bot.sendMessage(chatId, `❌ Room <b>${code}</b> is full (max 10 players).`, { parse_mode: "HTML" });
     }
 
-    if (battle.players[userId]) {
+    if (battle.players[tgId]) {
       return bot.sendMessage(chatId, `❌ You already joined room <b>${code}</b>.`, { parse_mode: "HTML" });
     }
 
-    // Add player to the battle
-    const user = users[userId];
-    const badge = (user?.premium?.isPremium && user.premium.expiresAt > Date.now()) ? "💎 " : "";
-    
-    battle.players[userId] = {
-      id: userId,
-      name: username,
-      badge,
-      submitted: false,
-      solved: false,
-      time: null,
-      joinedAt: Date.now()
-    };
+    // 🔍 Mongo user lookup
+    const { getUserByTelegramId } = require("./db/userService");
+    const user = await getUserByTelegramId(tgId);
 
-    writeBattles(data);
-
-    // Confirmation message to the joining player
-    bot.sendMessage(chatId, `✅ You joined the battle room <b>${code}</b>! ${badge}`, { parse_mode: "HTML" });
-
-    // Notify host
-    if (battle.host !== userId) {
-      bot.sendMessage(battle.host, `👤 ${badge}${username} joined your battle <b>${code}</b>.`, { parse_mode: "HTML" });
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
     }
 
-    // Notify all other players (excluding the joining user and host)
+    const badge =
+      user.premium?.isPremium && user.premium.expiresAt > Date.now()
+        ? "💎 "
+        : "";
+
+    // ➕ Add player
+   battle.players.set(tgId, {
+  tgId,
+  internalId: user._id,
+  name: username,
+  badge,
+  joinedAt: Date.now(),
+  submitted: false,
+  solved: false,
+  time: null
+});
+
+await battle.save();
+
+
+    // ✅ Confirm join
+    bot.sendMessage(
+      chatId,
+      `✅ You joined the battle room <b>${code}</b>! ${badge}`,
+      { parse_mode: "HTML" }
+    );
+
+    // 📣 Notify host
+    if (battle.host !== tgId) {
+      bot.sendMessage(
+        battle.host,
+        `👤 ${badge}${username} joined your battle <b>${code}</b>.`,
+        { parse_mode: "HTML" }
+      );
+    }
+
+    // 📣 Notify others
     Object.keys(battle.players).forEach(pid => {
-      if (pid !== userId && pid !== battle.host) {
-        bot.sendMessage(pid, `👤 ${badge}${username} joined your battle <b>${code}</b>.`, { parse_mode: "HTML" });
+      if (pid !== tgId && pid !== battle.host) {
+        bot.sendMessage(
+          pid,
+          `👤 ${badge}${username} joined your battle <b>${code}</b>.`,
+          { parse_mode: "HTML" }
+        );
       }
     });
   }
 );
+
 
 
 
@@ -2297,28 +2413,31 @@ const PREMIUM_GROUP_LINK = "https://t.me/TrustBitCoding"; // generated invite li
 
 
 
-function buyPremium(bot, chatId, days) {
-  const coins = loadJSON(coinsFile);
-  const premiumUsers = loadJSON(premiumFile);
+async function buyPremium(bot, tgId, days) {
+  const User = require("./models/User");
+
+  const user = await User.findOne({ tgId: tgId });
+  if (!user) return;
 
   const cost = 100 * days;
-  if ((coins[chatId] || 0) < cost) {
-    return bot.sendMessage(chatId, "❌ Not enough coins.");
+  if (user.coins < cost) {
+    return bot.sendMessage(tgId, "❌ Not enough coins.");
   }
 
-  coins[chatId] -= cost;
-  saveJSON(coinsFile, coins);
+  user.coins -= cost;
+  user.premium = {
+    isPremium: true,
+    expiresAt: Date.now() + days * 24 * 60 * 60 * 1000
+  };
 
-  const expiry = Date.now() + days * 24 * 60 * 60 * 1000;
-  premiumUsers[chatId] = expiry;
-  saveJSON(premiumFile, premiumUsers);
+  await user.save();
 
-  bot.sendMessage(chatId, `🎉 Premium activated for ${days} days!`);
-  bot.sendMessage(chatId, `🔗 Join the Premium Group: ${PREMIUM_GROUP_LINK}`);
+  bot.sendMessage(tgId, `🎉 Premium activated for ${days} days!`);
+  bot.sendMessage(tgId, `🔗 Join the Premium Group: ${PREMIUM_GROUP_LINK}`);
 
-  // Optional: Send premium welcome message with privileges
-  sendPremiumWelcome(bot, chatId, users[chatId]?.name || "User");
+  sendPremiumWelcome(bot, tgId, user.displayName);
 }
+
 
 // Start periodic premium expiry checks every 10 minutes
 setInterval(() => checkPremiumExpiry(bot), 60 * 60 * 1000);
@@ -2326,42 +2445,6 @@ setInterval(() => checkPremiumExpiry(bot), 60 * 60 * 1000);
 
 const quizTask = require("./quiz_and_task");
 
-// Quiz commands
-/*registerCommand(/\/quizmode$/, "Start interactive quiz mode", (msg) => {
-  const chatId = msg.chat.id;
-
-  try {
-    quizTask.startQuizMode(bot, chatId);
-    bot.sendMessage(chatId, "📝 Quiz mode activated! Answer the questions as they come in.");
-  } catch (err) {
-    console.error("QuizMode Error:", err);
-    bot.sendMessage(chatId, "❌ Failed to start quiz mode. Please try again later.");
-  }
-});
-
-registerCommand(/\/stopquiz$/, "Stop quiz mode", (msg) => {
-  const chatId = msg.chat.id;
-
-  try {
-    quizTask.stopQuizMode(bot, chatId);
-    bot.sendMessage(chatId, "🛑 Quiz mode stopped. You can start again with /quizmode anytime.");
-  } catch (err) {
-    console.error("StopQuiz Error:", err);
-    bot.sendMessage(chatId, "❌ Failed to stop quiz mode. Please try again.");
-  }
-});
-
-bot.on("message", (msg) => {
-  // Ignore messages that are commands (start with "/")
-  if (msg.text && msg.text.startsWith("/")) return;
-
-  try {
-    quizTask.handleQuizAnswer(bot, msg);
-  } catch (err) {
-    console.error("Quiz answer error:", err);
-    bot.sendMessage(msg.chat.id, "❌ Error processing your quiz answer.");
-  }
-});*/
 
 
 // Task
@@ -2443,44 +2526,29 @@ registerCommand(/\/buycoins(?:\s+(\d+))?$/, "Buy coins (Example: /buycoins 100)"
 });
 
 
-// Admin give coins // your Telegram ID
-
-// Admin gives coins
-
-const usersFile = './users.json';
-const coinsFile = './coins.json';
-
-/*function loadJSON(file) {
-  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file)) : {};
-}*/
-/*function saveJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}*/
 
 
 function getBotUserId(telegramId) {
   return users[telegramId]?.id || null;
 }
 
-registerCommand(/\/myid$/, "Show your bot ID", (msg) => {
+registerCommand(/\/myid$/, "Show your bot ID", async (msg) => {
   const chatId = msg.chat.id;
-  const botId = getBotUserId(chatId);
+  const tgId = msg.from.id.toString();
+  const { getUserByTelegramId } = require("./db/userService");
 
-  if (!botId) {
-    return bot.sendMessage(chatId, "❌ Could not retrieve your bot ID. Try again later.");
+  const user = await getUserByTelegramId(tgId);
+  if (!user) {
+    return bot.sendMessage(chatId, "❌ You are not registered.");
   }
 
-  bot.sendMessage(chatId, `🆔 Your bot ID is: <b>${botId}</b>`, { parse_mode: "HTML" });
+  bot.sendMessage(
+    chatId,
+    `🆔 Your bot ID is: <b>${user.id}</b>`,
+    { parse_mode: "HTML" }
+  );
 });
 
-
-// Give coins by bot ID
-
-// /giftcoins <userID> <amount>
-// ======= Simple safe /giftcoins handler (no registerCommand) =======
-//const ADMIN_IDS = new Set(["6499793556"]); // put your admin Telegram IDs here (strings or numbers)
-
-// helper to check admin
 function isAdmin(id) {
   return ADMIN_IDS.has(String(id)) || ADMIN_IDS.has(Number(id));
 }
@@ -2490,131 +2558,163 @@ function isAdmin(id) {
 
 registerCommand(
   /^\/admincoins\s+(\w+)\s+(\d+)$/i,
-  "Give coins to a user (admin only, unlimited)",
-  (msg, match) => {
-    const chatId = msg.chat.id.toString();
-    const adminIds = ["6499793556"];
-    const adminId = msg.from.id.toString();
-
-    if (!adminIds.includes(adminId)) {
-      return bot.sendMessage(chatId, "🚫 You are not authorized to use this command.");
-    }
-
-    const userIdInput = match[1].trim();
-    const amount = parseInt(match[2], 10);
-
-    if (isNaN(amount) || amount <= 0) {
-      return bot.sendMessage(chatId, "⚠️ Please provide a valid positive amount.");
-    }
-
-    // 🔍 Find target user in the in-memory `users` object
-    let targetUserKey = null;
-    for (const tgId in users) {
-      if (String(users[tgId].id) === userIdInput) {
-        targetUserKey = tgId;
-        break;
+  "Give coins to a user (admin only)",
+  async (msg, match) => {
+    try {
+      const adminIds = ["6499793556"];
+      if (!adminIds.includes(msg.from.id.toString())) {
+        return bot.sendMessage(msg.chat.id, "🚫 Admin only.");
       }
-    }
 
-    if (!targetUserKey) {
-      return bot.sendMessage(
-        chatId,
-        `❌ No user found with ID: <code>${userIdInput}</code>`,
-        { parse_mode: "HTML" }
+      const tgId = match[1];              // telegram ID or internal ID
+      const amount = parseInt(match[2], 10);
+      if (isNaN(amount) || amount <= 0) {
+        return bot.sendMessage(msg.chat.id, "❌ Invalid amount.");
+      }
+
+      const User = require("./models/User");
+
+      // ✅ Fetch user from Mongo
+      const user = await User.findOne({
+        $or: [{ tgId }, { id: tgId }]
+      });
+
+      if (!user) {
+        return bot.sendMessage(msg.chat.id, "❌ User not found.");
+      }
+
+      // ✅ Safe defaults
+      if (!user.inbox) user.inbox = [];
+
+      // ✅ Update values
+      user.coins += amount;
+
+      user.inbox.push({
+        title: "🎁 Coins Reward",
+        message: `You received 💰 ${amount} coins.\nNew balance: ${user.coins}`,
+        read: false,
+        createdAt: new Date()
+      });
+
+      await user.save();
+
+      bot.sendMessage(
+        msg.chat.id,
+        `✅ ${amount} coins added to ${user.username || user.tgId}\n💰 Balance: ${user.coins}`
       );
+    } catch (err) {
+      console.error("admincoins error:", err);
+      bot.sendMessage(msg.chat.id, "⚠️ Failed to give coins.");
     }
-
-    const targetUser = users[targetUserKey];
-
-    // 💰 Add coins directly to in-memory object
-    targetUser.coins = (targetUser.coins || 0) + amount;
-
-    // 📬 Send inbox mail
-    addMailToUser(targetUserKey, {
-      from: "admin",
-      subject: "🎁 Coins Reward",
-      body: `Congratulations!\n\nYou have received 💰 ${amount} coins from the admin.\n\n🏦 Your new balance is ${targetUser.coins} coins.\n\nKeep learning and earning 🚀`
-    });
-
-    // 🔒 Save updated in-memory object to JSON
-    saveJSON("./users.json", users);
-
-    // ✅ Confirm to admin
-    bot.sendMessage(
-      chatId,
-      `✅ <b>${amount}</b> coins sent to <b>${escapeHTML(targetUser.displayName || "User")}</b>\n` +
-        `📩 Inbox notification delivered.\n` +
-        `💰 New Balance: <b>${targetUser.coins}</b>`,
-      { parse_mode: "HTML" }
-    );
   }
 );
+
+
 
 
 // ===== GIFT COINS (Admin only) =====
 registerCommand(
-  /^\/giftcoin\s+(\w+)\s+(\d+)$/,   // ✅ regex must start ^ and end $
-  "Gift coins to a user (admin only)",  // ✅ description
-  (msg, match) => {                    // ✅ handler (function)
+  /^\/giftcoin\s+(\w+)\s+(\d+)$/,
+  "Gift coins to a user (admin only)",
+  async (msg, match) => {
 
-    const chatId = msg.chat.id.toString();
-    const adminIds = ["6499793556"]; // your Telegram ID(s) as admin
-    const userIdInput = match[1].trim(); // bot-generated user ID
+    const adminIds = ["6499793556"];
+    if (!adminIds.includes(msg.from.id.toString())) {
+      return bot.sendMessage(msg.chat.id, "🚫 Admin only.");
+    }
+
+    const internalId = match[1];
     const amount = parseInt(match[2], 10);
 
-    // 🔒 Check admin permission
-    if (!adminIds.includes(msg.from.id.toString())) {
-      return bot.sendMessage(chatId, "🚫 You are not authorized to use this command.");
+    if (amount <= 0) {
+      return bot.sendMessage(msg.chat.id, "⚠️ Invalid amount.");
     }
 
-    if (isNaN(amount) || amount <= 0) {
-      return bot.sendMessage(chatId, "⚠️ Please provide a valid positive amount.");
+    const User = require("./models/User");
+    const user = await User.findOne({ id: internalId });
+
+    if (!user) {
+      return bot.sendMessage(msg.chat.id, "❌ User not found.");
     }
 
-    // 🔍 Find user by stored bot-generated ID
-    let targetUserKey = null;
-    for (const tgId in users) {
-      if (String(users[tgId].id) === userIdInput) {
-        targetUserKey = tgId;
-        break;
-      }
-    }
+    user.coins += amount;
+    user.inbox.push({
+      from: "admin",
+      subject: "🎁 Gift Coins",
+      body: `You received ${amount} coins.`,
+      at: Date.now()
+    });
 
-    if (!targetUserKey) {
-      return bot.sendMessage(
-        chatId,
-        `❌ No user found with ID: <b>${userIdInput}</b>`,
-        { parse_mode: "HTML" }
-      );
-    }
-
-    // 💰 Update coins
-    const targetUser = users[targetUserKey];
-    targetUser.coins = (targetUser.coins || 0) + amount;
-
-    saveUsers();
+    await user.save();
 
     bot.sendMessage(
-      chatId,
-      `✅ Gifted <b>${amount}</b> coins to <b>${escapeHTML(targetUser.displayName || "Unknown")}</b> (ID: <code>${targetUser.id}</code>).\n` +
-      `💰 New Balance: <b>${targetUser.coins}</b> coins.`,
-      { parse_mode: "HTML" }
+      msg.chat.id,
+      `✅ Gifted ${amount} coins.\n💰 New balance: ${user.coins}`
     );
   }
 );
 
+
 // ===== BUY PREMIUM =====
 const premiumGroupLink = "https://t.me/TrustBitCoding"; // Set your group invite link
 const premiumCostPerDay = 50; // Example: 50 coins per day
-
 registerCommand(
+  /\/buypremium\s+(\d+)$/,
+  "Buy premium for given days",
+  async (msg, match) => {
+
+    const chatId = msg.chat.id;
+    const days = parseInt(match[1], 10);
+    const tgId = msg.from.id.toString();
+    const { getUserByTelegramId } = require("./db/userService");
+
+    if (!days || days <= 0) {
+      return bot.sendMessage(chatId, "❌ Invalid days.");
+    }
+
+    const user = await getUserByTelegramId(tgId);
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered.");
+    }
+
+    const costPerDay = 50;
+    const totalCost = days * costPerDay;
+
+    if (user.coins < totalCost) {
+      return bot.sendMessage(
+        chatId,
+        `❌ Not enough coins. Need ${totalCost}.`
+      );
+    }
+
+    user.coins -= totalCost;
+
+    const now = Date.now();
+    user.premium = {
+      isPremium: true,
+      expiresAt: now + days * 24 * 60 * 60 * 1000
+    };
+
+    await user.save();
+
+    bot.sendMessage(
+      chatId,
+      `🎉 Premium activated for ${days} days!\n🔗 ${premiumGroupLink}`
+    );
+  }
+);
+
+/*registerCommand(
   /\/buypremium\s+(\d+)$/,
   "Buy premium for given days",
   (msg, match) => {
     const chatId = msg.chat.id;
     const days = parseInt(match[1], 10);
     const userId = msg.from.id.toString();
-    const user = users[userId];
+    const { getUserByInternalId } = require("./db/userService");
+
+const user = await getUserByInternalId(userId);
+
 
     if (!days || days <= 0) {
       return bot.sendMessage(
@@ -2647,7 +2747,7 @@ registerCommand(
       isPremium: true,
       expiresAt: expireTime,
     };*/
-user.premium = {
+/*user.premium = {
   isPremium: true,
   expiresAt: expireTime
 };
@@ -2671,70 +2771,90 @@ user.premium = {
       { parse_mode: "HTML", disable_web_page_preview: true }
     );
   }
+);*/
+
+
+
+registerCommand(
+  /^\/premiumstatus$/,
+  "Check your premium subscription status",
+  async (msg) => {
+    const chatId = msg.chat.id;
+    const { getUserByTelegramId } = require("./db/userService");
+
+    const user = await getUserByTelegramId(msg.from.id.toString());
+
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
+    }
+
+    if (!user.premium?.isPremium) {
+      return bot.sendMessage(
+        chatId,
+        "⚠️ You don't have an active Premium subscription.\n\nUse /buypremium <days> to upgrade."
+      );
+    }
+
+    const now = Date.now();
+
+    // ⛔ expired → update Mongo
+    if (now > user.premium.expiresAt) {
+      user.premium.isPremium = false;
+      user.premium.expiresAt = null;
+      await user.save();
+
+      return bot.sendMessage(
+        chatId,
+        "⏳ Your Premium subscription has expired.\n\nUse /buypremium <days> to renew."
+      );
+    }
+
+    const remainingDays = Math.ceil(
+      (user.premium.expiresAt - now) / (24 * 60 * 60 * 1000)
+    );
+
+    bot.sendMessage(
+      chatId,
+      `✨ <b>Premium Status</b>\n\n` +
+      `✅ Active: <b>Yes</b>\n` +
+      `📅 Expires on: <b>${new Date(user.premium.expiresAt).toDateString()}</b>\n` +
+      `⏳ Days remaining: <b>${remainingDays}</b>`,
+      { parse_mode: "HTML" }
+    );
+  }
 );
 
 
 
-registerCommand(/^\/premiumstatus$/, "Check your premium subscription status", (msg) => {
-  const chatId = msg.chat.id;
-  const user = users[msg.from.id];
-
-  if (!user) {
-    return bot.sendMessage(chatId, "❌ You are not registered. Use /start to register first.");
-  }
-
-  if (!user.premium || !user.premium.isPremium) {
-    return bot.sendMessage(
-      chatId,
-      "⚠️ You don't have an active Premium subscription.\n\nUse /buypremium <days> to upgrade."
-    );
-  }
-
-  const now = Date.now();
-  if (now > user.premium.expiresAt) {
-    user.premium.isPremium = false;
-    saveUsers();
-    return bot.sendMessage(
-      chatId,
-      "⏳ Your Premium subscription has expired.\n\nUse /buypremium <days> to renew."
-    );
-  }
-
-  const remainingMs = user.premium.expiresAt - now;
-  const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
-
-  bot.sendMessage(
-    chatId,
-    `✨ <b>Premium Status</b>\n\n` +
-    `✅ Active: <b>Yes</b>\n` +
-    `📅 Expires on: <b>${new Date(user.premium.expiresAt).toDateString()}</b>\n` +
-    `⏳ Days remaining: <b>${remainingDays}</b>`,
-    { parse_mode: "HTML" }
-  );
-});
-
-
 
 // ===== DAILY PREMIUM CHECK =====
-setInterval(() => {
-    const now = Date.now();
+//const User = require("./models/User");
 
-    Object.values(users).forEach(user => {
-        if (user.premium?.isPremium && user.premium.expiresAt < now) {
-            user.premium.isPremium = false;
-            user.premium.expiresAt = null;
+setInterval(async () => {
+  const now = Date.now();
 
-            // Remove badge
-            user.badge = null;
+  const expiredUsers = await User.find({
+    "premium.isPremium": true,
+    "premium.expiresAt": { $lt: now }
+  });
 
-            // Optionally remove from TG group (bot must be admin in that group)
-            bot.kickChatMember("-100YOUR_GROUP_ID", user.telegramId)
-                .catch(err => console.log(`Failed to remove user ${user.telegramId}:`, err));
+  for (const user of expiredUsers) {
+    user.premium.isPremium = false;
+    user.premium.expiresAt = null;
+    user.badge = null;
 
-            saveUsers();
-        }
-    });
-}, 60 * 60 * 1000); // Runs every 1 hour
+    await user.save();
+
+    // OPTIONAL: remove from premium group
+    if (user.telegramId) {
+      bot.kickChatMember(
+        "-100YOUR_GROUP_ID",
+        user.telegramId
+      ).catch(() => {});
+    }
+  }
+}, 60 * 60 * 1000); // hourly
+// Runs every 1 hour
 
 
 
@@ -2742,95 +2862,6 @@ setInterval(() => {
 setInterval(() => quizTask.checkPremiumExpiry(bot), 60 * 60 * 1000);
 
 
-// Start battle game (host or any player) — need minimum 2 players
-/*registerCommand(/^\/battle startgame(?: (\w{5,6}))?$/i, "Start a battle game with the provided room code", (msg, match) => {
-  const chatId = msg.chat.id;
-  const code = match[1] ? match[1].trim().toUpperCase() : null;
-
-  if (!code) {
-    return bot.sendMessage(chatId, '⚠️ Please provide the 6-letter Battle Room Code.\nUsage: /battle startgame ROOMCODE');
-  }
-
-  // Load battle data
-  const data = readBattles();
-  if (!data || !Array.isArray(data.battles)) {
-    return bot.sendMessage(chatId, '❌ Error loading battles.');
-  }
-
-  // Find battle (case-insensitive)
-  const battle = data.battles.find((b) => String(b.code).trim().toUpperCase() === code);
-
-  if (!battle) {
-    console.log("Battles loaded:", data.battles); // debug
-    return bot.sendMessage(chatId, '❌ Battle not found.');
-  }
-
-  if (battle.status === 'running') return bot.sendMessage(chatId, '⚠️ Battle already running.');
-  if (battle.status === 'finished') return bot.sendMessage(chatId, '⚠️ Battle already finished.');
-
-  if (Object.keys(battle.players).length < 2) {
-    return bot.sendMessage(chatId, '❌ Need at least 2 players to start.');
-  }
-
-  // Start battle
-  battle.status = 'running';
-  const now = Date.now();
-  battle.endsAt = now + (battle.durationMs || 10 * 60 * 1000); // default 10 mins
-
-  writeBattles(data);
-
-  // Notify players privately
-  Object.values(battle.players).forEach((p) => {
-    bot.sendMessage(
-      p.id,
-      `🏁 <b>Battle started!</b>\n` +
-      `🔑 Room: <b>${code}</b>\n` +
-      `📌 Problem: <b>${battle.problem.title}</b>\n\n` +
-      `${battle.problem.description}\n\n` +
-      `➡️ Submit your answer with:\n<code>/battle submit ${code} &lt;your-output&gt;</code>\n\n` +
-      `⏳ Time remaining: <b>${Math.ceil((battle.endsAt - now) / 1000)} seconds</b>.`,
-      { parse_mode: 'HTML' }
-    ).catch(() => {}); // ignore DM errors
-  });
-
-  // Announce in group
-  bot.sendMessage(
-    chatId,
-    `🏁 <b>Battle started!</b>\n` +
-    `🔑 Room: <b>${code}</b>\n` +
-    `📌 Problem: <b>${battle.problem.title}</b>\n\n` +
-    `🔥 Good luck to all players!`,
-    { parse_mode: 'HTML' }
-  );
-
-  // Schedule end
-  setTimeout(() => {
-    const d = readBattles();
-    const b = d.battles.find((x) => String(x.code).trim().toUpperCase() === code);
-    if (!b || b.status === 'finished') return;
-
-    b.status = 'finished';
-
-    // Update leaderboard
-    const leaderboard = readLeaderboard();
-    Object.values(b.players).forEach((p) => {
-      if (p.solved) leaderboard.scores[p.id] = (leaderboard.scores[p.id] || 0) + 10;
-    });
-
-    writeLeaderboard(leaderboard);
-    writeBattles(d);
-
-    // Announce results
-    bot.sendMessage(
-      chatId,
-      `⏹️ <b>Battle ${code} ended!</b>\n\n` +
-      Object.values(b.players)
-        .map((p) => `👤 ${p.name} — ${p.solved ? '✅ Solved' : '❌ Not solved'}`)
-        .join('\n'),
-      { parse_mode: 'HTML' }
-    );
-  }, battle.endsAt - now);
-});*/
 
 // ===== Battle Start Game (Pro Version) =====
 registerCommand(
@@ -2938,62 +2969,7 @@ registerCommand(
 
 
 
-/*registerCommand(
-  /^\/battle setsettings (\w{5,6}) (\d+)(?:m|M|min|MIN)? (\d+)(?:q|Q)?(?: (\d+)(?:s|S|sec|SEC)?)?$/,
-  "Set battle settings (admin only): duration, question count, per-question time",
-  (msg, match) => {
-    const chatId = msg.chat.id;
-    const userId = msg.from.id;
 
-    if (!match) {
-      return bot.sendMessage(
-        chatId,
-        `⚙️ <b>Usage:</b>\n` +
-        `<code>/battle setsettings CODE DURATIONmin QUESTIONS [SECONDS]</code>\n\n` +
-        `Example:\n<code>/battle setsettings ABC123 5m 10q 30s</code>`,
-        { parse_mode: "HTML" }
-      );
-    }
-
-    const code = match[1].toUpperCase();
-    const durationMinutes = parseInt(match[2]);
-    const questionCount = parseInt(match[3]);
-    const perQuestionSeconds = match[4] ? parseInt(match[4]) : null;
-
-    const data = readBattles();
-    const battle = data.battles.find(b => b.code === code);
-
-    if (!battle) return bot.sendMessage(chatId, "❌ Battle not found.");
-    if (battle.adminId !== userId) return bot.sendMessage(chatId, "🚫 Only the battle admin can change settings.");
-    if (battle.status !== "waiting") return bot.sendMessage(chatId, "⚠️ Cannot change settings after the battle has started.");
-
-    // Validate inputs
-    if (durationMinutes <= 0 || questionCount <= 0) {
-      return bot.sendMessage(chatId, "❌ Duration and question count must be positive numbers.");
-    }
-    if (perQuestionSeconds !== null && perQuestionSeconds <= 0) {
-      return bot.sendMessage(chatId, "❌ Per-question time must be a positive number.");
-    }
-
-    // Save settings
-    battle.durationMs = durationMinutes * 60 * 1000;
-    battle.questionCount = questionCount;
-    if (perQuestionSeconds !== null) {
-      battle.perQuestionTimeSec = perQuestionSeconds;
-    }
-
-    writeBattles(data);
-
-    bot.sendMessage(
-      chatId,
-      `✅ <b>Settings updated for Battle ${code}</b>\n\n` +
-      `🕒 Duration: <b>${durationMinutes} minute(s)</b>\n` +
-      `❓ Questions: <b>${questionCount}</b>\n` +
-      (perQuestionSeconds ? `⏳ Per Question Time: <b>${perQuestionSeconds} seconds</b>` : ""),
-      { parse_mode: "HTML" }
-    );
-  }
-);*/
 
 // ===== Battle Settings Command (Admin only) =====
 registerCommand(
@@ -3055,73 +3031,7 @@ registerCommand(
 
 
 
-// Submit solution with improved error handling
-/*registerCommand(
-  /\/battle submit (\w{5}) (.+)/,
-  "Submit your solution output for a battle problem",
-  (msg, match) => {
-    const chatId = msg.chat.id;
-    const code = match[1].toUpperCase();
-    let output = match[2].trim();
 
-    try {
-      const data = readBattles();
-      const battle = data.battles.find((b) => b.code === code);
-
-      if (!battle) return bot.sendMessage(chatId, "❌ Battle not found.");
-      if (battle.status !== "running") return bot.sendMessage(chatId, "⚠️ Battle is not running.");
-
-      const uid = msg.from.id;
-      if (!battle.players[uid]) {
-        return bot.sendMessage(
-          chatId,
-          `🚫 You are not in this battle.\nJoin with <code>/battle join ${code}</code>`,
-          { parse_mode: "HTML" }
-        );
-      }
-
-      // Normalize whitespace
-      output = output.replace(/\s+/g, " ").trim();
-      const expected = String(battle.problem.expected_output).replace(/\s+/g, " ").trim();
-
-      const now = Date.now();
-      const timeTaken = now - (battle.createdAt || battle.endsAt || battle.createdAt);
-
-      if (output === expected) {
-        battle.players[uid].submitted = true;
-
-        if (!battle.players[uid].solved) {
-          battle.players[uid].solved = true;
-          battle.players[uid].time = timeTaken;
-          battle.submissions.push({ user: uid, ok: true, time: timeTaken });
-
-          // Award points
-          const leaderboard = readLeaderboard();
-          leaderboard.scores[uid] = (leaderboard.scores[uid] || 0) + 10;
-          writeLeaderboard(leaderboard);
-          writeBattles(data);
-
-          return bot.sendMessage(
-            chatId,
-            `✅ <b>Correct!</b>\n${msg.from.username || msg.from.first_name} solved it.\n+10 points awarded.`,
-            { parse_mode: "HTML" }
-          );
-        } else {
-          return bot.sendMessage(chatId, "ℹ️ You already solved this one.");
-        }
-      } else {
-        // Incorrect
-        battle.submissions.push({ user: uid, ok: false, got: output, time: now });
-        writeBattles(data);
-
-        return bot.sendMessage(chatId, "❌ Incorrect output. Try again!");
-      }
-    } catch (err) {
-      console.error("Error in /battle submit:", err);
-      return bot.sendMessage(chatId, "❌ An error occurred while processing your submission.");
-    }
-  }
-);*/
 
 function normalize(text) {
   return String(text)
@@ -3223,99 +3133,7 @@ registerCommand(
   }
 );
 
-/*registerCommand(
-  /\/battle submit (\w{5}) (.+)/,
-  "Submit your solution output for a battle problem",
-  (msg, match) => {
-    const chatId = msg.chat.id;
-    const code = match[1].toUpperCase();
-    const outputRaw = match[2];
-    const uid = msg.from.id;
 
-    try {
-      const data = readBattles();
-      const battle = data.battles.find(b => b.code === code);
-      if (!battle) return bot.sendMessage(chatId, "❌ Battle not found.");
-      if (battle.status !== "running") return bot.sendMessage(chatId, "⚠️ Battle is not running.");
-      if (!battle.players[uid]) {
-        return bot.sendMessage(
-          chatId,
-          `🚫 You are not in this battle.\nJoin with <code>/battle join ${code}</code>`,
-          { parse_mode: "HTML" }
-        );
-      }
-
-      const expectedRaw = battle.problem.expected_output;
-      const output = normalize(outputRaw);
-      const expected = normalize(expectedRaw);
-
-      let correct = false;
-
-      // ✅ Custom validator
-      if (typeof battle.problem.validate === "function") {
-        correct = battle.problem.validate(outputRaw);
-      } 
-      // ✅ YES / NO
-      else if (["yes", "no"].includes(expected)) {
-        correct = output.includes(expected);
-      } 
-      // ✅ Numbers
-      else if (/^-?\d+(\.\d+)?$/.test(expected)) {
-        const nums = extractNumbers(output);
-        correct = nums.includes(expected);
-      } 
-      // ✅ Text / multiline
-      else {
-        correct = output.includes(expected);
-      }
-
-      if (!correct) {
-        battle.submissions.push({ user: uid, ok: false, got: outputRaw });
-        writeBattles(data);
-        return bot.sendMessage(chatId, "❌ Incorrect answer. Try again!");
-      }
-
-      // Already solved?
-      if (battle.players[uid].solved) {
-        return bot.sendMessage(chatId, "ℹ️ You already solved this one.");
-      }
-
-      // ✅ Mark solved
-      battle.players[uid].submitted = true;
-      battle.players[uid].solved = true;
-      battle.players[uid].time = Date.now() - (battle.startedAt || battle.createdAt);
-      battle.submissions.push({ user: uid, ok: true });
-
-      // 🎯 Award points to user
-      const leaderboard = readLeaderboard();
-      leaderboard.scores[uid] = (leaderboard.scores[uid] || 0) + 10;
-
-      // 🎯 Award points to team if applicable
-      if (battle.teams) {
-        let playerTeam = null;
-        if (battle.teams.red.includes(uid)) playerTeam = "red";
-        if (battle.teams.blue.includes(uid)) playerTeam = "blue";
-
-        if (playerTeam) {
-          battle.teamScores[playerTeam] = (battle.teamScores[playerTeam] || 0) + 10;
-        }
-      }
-
-      writeLeaderboard(leaderboard);
-      writeBattles(data);
-
-      return bot.sendMessage(
-        chatId,
-        `✅ <b>Correct!</b>\n${msg.from.username || msg.from.first_name} solved it.\n+10 points 🎉`,
-        { parse_mode: "HTML" }
-      );
-
-    } catch (err) {
-      console.error("❌ /battle submit error:", err);
-      return bot.sendMessage(chatId, "❌ Internal error. Try again.");
-    }
-  }
-);*/
 function endTeamBattle(battle) {
   const red = battle.teamScores.red || 0;
   const blue = battle.teamScores.blue || 0;
@@ -3937,17 +3755,17 @@ registerCommand(
 
 function getLeaderboardScore(user) {
   const basePoints = user.points || 0;
+  const now = Date.now();
 
-  if (!user.premium?.isPremium || user.premium.expiresAt <= Date.now()) {
+  if (!user.premium?.isPremium || user.premium.expiresAt <= now) {
     return basePoints;
   }
 
   const daysLeft = Math.floor(
-    (user.premium.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)
+    (user.premium.expiresAt - now) / (1000 * 60 * 60 * 24)
   );
 
   let multiplier = 1;
-
   if (daysLeft >= 30) multiplier = 1.5;
   else if (daysLeft >= 15) multiplier = 1.3;
   else if (daysLeft >= 8) multiplier = 1.15;
@@ -3956,40 +3774,44 @@ function getLeaderboardScore(user) {
   return Math.floor(basePoints * multiplier);
 }
 
+
 // ===== Leaderboard =====
 registerCommand(
   /\/leaderboard$/,
   "Show the top 30 players leaderboard",
-  (msg) => {
+  async (msg) => {
     const chatId = msg.chat.id;
+    const User = require("./models/User");
 
-    const sortedUsers = Object.values(users)
-      .sort((a, b) => getLeaderboardScore(b) - getLeaderboardScore(a))
-      .slice(0, 30);
+    const users = await User.find({})
+      .select("username first_name points premium")
+      .lean();
 
-    if (sortedUsers.length === 0) {
+    if (!users.length) {
       return bot.sendMessage(chatId, "🏆 Leaderboard is empty.");
     }
 
-    const leaderboardText = sortedUsers
+    const sorted = users
+      .sort((a, b) => getLeaderboardScore(b) - getLeaderboardScore(a))
+      .slice(0, 30);
+
+    const leaderboardText = sorted
       .map((user, index) => {
-        let displayName =
+        const name =
           user.username ? `@${user.username}` :
           user.first_name ? user.first_name :
-          `ID:${user.id}`;
+          `ID:${user._id}`;
 
         const isPremium =
           user.premium?.isPremium && user.premium.expiresAt > Date.now();
 
         const badge = isPremium ? "💎 " : "";
+        const boosted = getLeaderboardScore(user);
+        const base = user.points || 0;
 
-        const boostedScore = getLeaderboardScore(user);
-        const baseScore = user.points || 0;
-
-        const boostedLabel =
-          boostedScore !== baseScore ? " <i>(boosted)</i>" : "";
-
-        return `${index + 1}. <b>${badge}${displayName}</b> — ${boostedScore} pts${boostedLabel}`;
+        return `${index + 1}. <b>${badge}${name}</b> — ${boosted} pts${
+          boosted !== base ? " <i>(boosted)</i>" : ""
+        }`;
       })
       .join("\n");
 
@@ -4004,38 +3826,43 @@ registerCommand(
 
 
 
+
 const ADMIN = ['6499793556'];
 
-bot.onText(/\/stats$/, (msg) => {
+bot.onText(/\/stats$/, async (msg) => {
   const chatId = msg.chat.id;
-  const userId = msg.from.id.toString(); // ✅ FIX HERE
+  const userId = msg.from.id.toString();
 
   if (!ADMIN.includes(userId)) {
-    return bot.sendMessage(chatId, '❌ You are not authorized to use this command.');
+    return bot.sendMessage(chatId, "❌ Unauthorized.");
   }
 
-  const users = readJSON('./users.json') || {};
-  const battles = readJSON('./battles.json') || { battles: [] };
+  const User = require("./models/User");
+  const Battle = require("./models/Battle"); // later, can be stub
 
-  const totalUsers = Object.keys(users).length;
-  const onlineUsers = Object.values(users).filter(
-    u => (Date.now() - (u.lastActive || 0)) < 10 * 60 * 1000
-  ).length;
-  const activeRooms = battles.battles.length;
+  const now = Date.now();
 
-  const topPlayers = Object.values(users)
-    .sort((a, b) => (b.points || 0) - (a.points || 0))
-    .slice(0, 5)
-    .map((u, i) => {
-      const displayName =
-        u.username ? `@${u.username}` :
-        u.first_name ? u.first_name :
-        `ID:${u.id}`;
-      return `${i + 1}. <b>${displayName}</b> — ${u.points || 0} pts`;
-    })
-    .join('\n') || "No players yet.";
+  const totalUsers = await User.countDocuments();
+  const onlineUsers = await User.countDocuments({
+    lastActive: { $gte: now - 10 * 60 * 1000 }
+  });
 
-  const statsMsg = `
+  const activeRooms = 0; // battles disabled for now
+
+  const topPlayers = await User.find({})
+    .sort({ points: -1 })
+    .limit(5)
+    .select("username first_name points");
+
+  const topText = topPlayers.length
+    ? topPlayers.map((u, i) =>
+        `${i + 1}. <b>${u.username ? "@" + u.username : u.first_name}</b> — ${u.points || 0} pts`
+      ).join("\n")
+    : "No players yet.";
+
+  bot.sendMessage(
+    chatId,
+    `
 📊 <b>Bot Stats</b>
 ━━━━━━━━━━━━━━
 👥 Total users: <b>${totalUsers}</b>
@@ -4043,11 +3870,12 @@ bot.onText(/\/stats$/, (msg) => {
 🎮 Active rooms: <b>${activeRooms}</b>
 
 🏆 <b>Top 5 Players</b>
-${topPlayers}
-  `;
-
-  bot.sendMessage(chatId, statsMsg, { parse_mode: "HTML" });
+${topText}
+`,
+    { parse_mode: "HTML" }
+  );
 });
+
 
 
 function getRandomItem(arr) {
@@ -4058,15 +3886,15 @@ function getRandomItem(arr) {
 registerCommand(
   /\/motivate$/,                          // regex
   "Send a random motivational quote",     // description
-  (msg) => {                              // handler
+  async (msg) => {                        // <-- async added
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
 
-    if (!users[userId]) {
-      return bot.sendMessage(
-        chatId,
-        "❌ You are not registered yet. Use /start to begin."
-      );
+    const { getUserByTelegramId } = require("./db/userService");
+
+    const user = await getUserByTelegramId(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start.");
     }
 
     bot.sendMessage(chatId, getRandomItem(motivationalQuotes));
@@ -4074,20 +3902,22 @@ registerCommand(
 );
 
 
+
 // /funfact
 registerCommand(
   /\/funfact$/,                        // regex
   "Send a random fun fact",            // description
-  (msg) => {                           // handler
+ async (msg) => {                           // handler
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
 
-    if (!users[userId]) {
-      return bot.sendMessage(
-        chatId,
-        "❌ You are not registered yet. Use /start to begin."
-      );
+    const { getUserByTelegramId } = require("./db/userService");
+
+    const user = await getUserByTelegramId(userId);
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start.");
     }
+
 
     bot.sendMessage(chatId, getRandomItem(funFacts));
   }
@@ -4098,16 +3928,17 @@ registerCommand(
 registerCommand(
   /\/roastcode$/,                     // regex
   "Send a random code roast",         // description
-  (msg) => {                          // handler
+  async (msg) => {                          // handler
     const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
 
-    if (!users[userId]) {
-      return bot.sendMessage(
-        chatId,
-        "❌ You are not registered yet. Use /start to begin."
-      );
-    }
+    const { getUserByTelegramId } = require("./db/userService");
+
+const user = await getUserByTelegramId(userId);
+if (!user) {
+  return bot.sendMessage(chatId, "❌ You are not registered. Use /start.");
+}
+
 
     bot.sendMessage(chatId, getRandomItem(roasts));
   }
@@ -4216,11 +4047,12 @@ setInterval(() => {
       now - lastBonus >= WEEK &&
       now - lastReminder >= WEEK
     ) {
-      addMailToUser(userId, {
-        from: "system",
-        subject: "🎁 Weekly Bonus Available",
-        body: "Your weekly Premium bonus is ready! Use /weeklybonus to claim your coins 💎"
-      });
+      addMailToUser(user.tgId, {
+  from: "system",
+  subject: "🎁 Weekly Bonus Available",
+  body: "Your weekly Premium bonus is ready! Use /weeklybonus to claim your coins 💎"
+});
+
 
       user.lastWeeklyReminder = now;
     }
@@ -4234,10 +4066,12 @@ setInterval(() => {
 // List of admin user IDs (your Telegram user IDs)
 const adminUserIds = [6499793556];
 
-registerCommand(/\/weeklybonus$/, "Claim weekly premium bonus", (msg) => {
+registerCommand(/\/weeklybonus$/, "Claim weekly premium bonus", async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id.toString();
-  const user = users[userId];
+  const { getUserByInternalId } = require("./db/userService");
+
+const user = await getUserByInternalId(userId);
 
   if (!user) {
     return bot.sendMessage(chatId, "❌ You are not registered yet. Use /start.");
@@ -4272,7 +4106,7 @@ registerCommand(/\/weeklybonus$/, "Claim weekly premium bonus", (msg) => {
   saveUsers();
 
   // 📬 Inbox mail
-  addMailToUser(userId, {
+  addMailToUser(user.tgId, {
     from: "system",
     subject: "🎁 Weekly Premium Bonus",
     body: `You received ${BONUS_COINS} coins as your weekly Premium bonus 💎`
@@ -4289,84 +4123,60 @@ registerCommand(/\/weeklybonus$/, "Claim weekly premium bonus", (msg) => {
 // Command to send announcement
 registerCommand(/\/announce (.+)/,
   "announce to everyone",
-   (msg, match) => {
-  const chatId = msg.chat.id;
-  const userId = msg.from.id.toString();
-  const announcement = match[1].trim();
+  async (msg, match) => {
+    const chatId = msg.chat.id;
+    const adminId = msg.from.id.toString();
+    const announcement = match[1].trim();
 
-  if (!ADMIN.includes(userId)) {
-    return bot.sendMessage(chatId, "❌ You don't have permission to send announcements.");
+    if (!ADMIN.includes(adminId)) {
+      return bot.sendMessage(chatId, "❌ No permission.");
+    }
+
+    const User = require("./db/models/User");
+
+    const users = await User.find({}).select("tgId inbox").lean(false);
+
+    for (const user of users) {
+      user.inbox.push({
+        title: "📢 Announcement",
+        message: announcement
+      });
+
+      await user.save();
+
+      bot.sendMessage(
+        user.tgId,
+        "📬 You have a new announcement.\nUse /inbox to read it."
+      ).catch(() => {});
+    }
+
+    bot.sendMessage(chatId, "✅ Announcement sent.");
   }
-
-  // Broadcast announcement to all users
-  Object.keys(users).forEach(uId => {
-    addMailToUser(uId, {
-      from: 'admin',
-      subject: 'Announcement',
-      body: announcement,
-    });
-  });
-
-  bot.sendMessage(chatId, "✅ Announcement sent to all users.");
-});
-
-
-
-// 📬 Inbox command
+);
 registerCommand(
   /\/inbox$/,
   "Show your inbox messages",
-  (msg) => {
-    const userId = msg.from.id.toString();
+  async (msg) => {
+    const tgId = msg.from.id.toString();
     const chatId = msg.chat.id;
+    const User = require("./db/models/User");
 
-    const mailboxes = readMailboxes();
-    const mails = mailboxes[userId] || [];
+    const user = await User.findOne({ tgId });
 
-    if (mails.length === 0) {
+    if (!user || !user.inbox.length) {
       return bot.sendMessage(chatId, "📭 Your inbox is empty.");
     }
 
-    // List mails with index, subject, and read status
-    const listText = mails
+    const listText = user.inbox
       .map(
         (mail, i) =>
-          `${i + 1}. ${mail.read ? "✅" : "📩"} ${mail.subject} (Received: ${new Date(mail.timestamp).toLocaleString()})`
+          `${i + 1}. ${mail.read ? "✅" : "📩"} ${mail.title}`
       )
       .join("\n");
 
     bot.sendMessage(
-  chatId,
-  `📬 <b>Your Messages:</b>\n\n${listText}\n\nUse /read <b>number</b> to read a message.`,
-  { parse_mode: "HTML" }
-);
-
-  }
-);
-
-// 📖 Read message command
-registerCommand(
-  /\/read (\d+)/,
-  "Read a message from your inbox",
-  (msg, match) => {
-    const userId = msg.from.id.toString();
-    const chatId = msg.chat.id;
-    const index = parseInt(match[1], 10) - 1;
-
-    const mailboxes = readMailboxes();
-    const mails = mailboxes[userId] || [];
-
-    if (!mails[index]) {
-      return bot.sendMessage(chatId, "❌ Invalid message number.");
-    }
-
-    const mail = mails[index];
-    mail.read = true;
-    writeMailboxes(mailboxes);
-
-    bot.sendMessage(
       chatId,
-      `📩 <b>${mail.subject}</b>\nFrom: ${mail.from}\nReceived: ${new Date(mail.timestamp).toLocaleString()}\n\n${mail.body}`,
+      `📬 <b>Your Messages:</b>\n\n${listText}\n\nUse /read (number) to read.`,
       { parse_mode: "HTML" }
     );
   }
@@ -4374,140 +4184,271 @@ registerCommand(
 
 
 
+// 📖 Read message command
+registerCommand(
+  /\/read (\d+)/,
+  "Read an inbox message",
+  async (msg, match) => {
+    const tgId = msg.from.id.toString();
+    const index = parseInt(match[1], 10) - 1;
+    const chatId = msg.chat.id;
+
+    const User = require("./db/models/User");
+    const user = await User.findOne({ tgId });
+
+    if (!user || !user.inbox[index]) {
+      return bot.sendMessage(chatId, "❌ Message not found.");
+    }
+
+    const mail = user.inbox[index];
+    mail.read = true;
+    await user.save();
+
+    bot.sendMessage(
+      chatId,
+      `<b>${mail.title}</b>\n\n${mail.message}`,
+      { parse_mode: "HTML" }
+    );
+  }
+);
+
+/*registerCommand(
+  /\/read (\d+)/,
+  "Read a message from your inbox",
+  async (msg, match) => {
+    const userId = msg.from.id.toString();
+    const chatId = msg.chat.id;
+    const index = parseInt(match[1], 10) - 1;
+    const Mail = require("./db/models/Mail");
+
+    const mail = await Mail.find({ tgId: userId })
+      .sort({ createdAt: -1 })
+      .skip(index)
+      .limit(1);
+
+    if (!mail.length) {
+      return bot.sendMessage(chatId, "❌ Invalid message number.");
+    }
+
+    const message = mail[0];
+
+    // Mark as read
+    await Mail.updateOne(
+      { _id: message._id },
+      { $set: { read: true } }
+    );
+
+    bot.sendMessage(
+      chatId,
+      `📩 <b>${message.subject}</b>
+From: ${message.from}
+Received: ${new Date(message.createdAt).toLocaleString()}
+
+${message.body}`,
+      { parse_mode: "HTML" }
+    );
+  }
+);*/
+
+
+
+
 // 🗑️ Delete a message
 registerCommand(
   /\/delete (\d+)/,
   "Delete a message from your inbox",
-  (msg, match) => {
+  async (msg, match) => {
     const userId = msg.from.id.toString();
     const chatId = msg.chat.id;
     const index = parseInt(match[1], 10) - 1;
+    const Mail = require("./db/models/User");
 
-    const mailboxes = readMailboxes();
-    const mails = mailboxes[userId] || [];
+    const mail = await Mail.find({ tgId: userId })
+      .sort({ createdAt: -1 })
+      .skip(index)
+      .limit(1);
 
-    if (!mails[index]) {
+    if (!mail.length) {
       return bot.sendMessage(chatId, "❌ Invalid message number.");
     }
 
-    mails.splice(index, 1);
-    writeMailboxes(mailboxes);
+    await Mail.deleteOne({ _id: mail[0]._id });
 
     bot.sendMessage(chatId, "🗑️ Message deleted.");
   }
 );
 
+
 // 🎁 Mystery box
 registerCommand(
   /\/mysterybox/,
   "Open your daily mystery box (coins, premium, or badge!)",
-  (msg) => {
+  async (msg) => {
+    const chatId = msg.chat.id;
     const userId = msg.from.id.toString();
     const now = Date.now();
 
-    if (!users[userId]) {
-      return bot.sendMessage(msg.chat.id, "❌ You are not registered. Use /start first.");
+    const { getUserByTelegramId } = require("./db/userService");
+    const User = require("./db/models/User");
+
+    const user = await getUserByTelegramId(userId);
+
+    if (!user) {
+      return bot.sendMessage(chatId, "❌ You are not registered. Use /start first.");
     }
 
-    if (users[userId].lastMysteryBox && now - users[userId].lastMysteryBox < 24 * 60 * 60 * 1000) {
-      return bot.sendMessage(msg.chat.id, "📦 You already opened your mystery box today. Come back tomorrow!");
+    // ⏳ 24h cooldown check
+    if (user.lastMysteryBox && now - user.lastMysteryBox < 24 * 60 * 60 * 1000) {
+      return bot.sendMessage(
+        chatId,
+        "📦 You already opened your mystery box today. Come back tomorrow!"
+      );
     }
 
-    let rewardText;
-    const isPremium = users[userId].isPremium && users[userId].premiumExpires > now;
+    const isPremium =
+      user.premium?.isPremium && user.premium.expiresAt > now;
+
     const chance = Math.random();
+    let rewardText = {};
+    let message = "";
 
+    // 🎁 PREMIUM REWARD
     if (chance < (isPremium ? 0.05 : 0.01)) {
-      users[userId].premiumExpires = (users[userId].premiumExpires || now) + 24 * 60 * 60 * 1000;
-      users[userId].isPremium = true;
-      rewardText = "🎁 You won +1 day Premium!";
+      const ONE_DAY = 24 * 60 * 60 * 1000;
+
+      const newExpiry =
+        user.premium?.expiresAt && user.premium.expiresAt > now
+          ? user.premium.expiresAt + ONE_DAY
+          : now + ONE_DAY;
+
+      rewardText = {
+        "premium.isPremium": true,
+        "premium.expiresAt": newExpiry
+      };
+
+      message = "🎁 You won +1 day Premium! 💎";
+
+    // 💰 COINS REWARD
     } else if (chance < (isPremium ? 0.20 : 0.10)) {
       const coins = Math.floor(Math.random() * 90) + 10;
-      users[userId].coins += coins;
-      rewardText = `💰 You found ${coins} coins!`;
+
+      rewardText = {
+        $inc: { coins }
+      };
+
+      message = `💰 You found ${coins} coins!`;
+
+    // 🏅 BADGE REWARD
     } else {
-      users[userId].badgeExpires = now + 24 * 60 * 60 * 1000;
-      users[userId].badge = "🏅";
-      rewardText = "🏅 You got a 24h special badge!";
+      rewardText = {
+        badge: "🏅",
+        badgeExpiresAt: now + 24 * 60 * 60 * 1000
+      };
+
+      message = "🏅 You got a 24h special badge!";
     }
 
-    users[userId].lastMysteryBox = now;
-    saveUsers();
+    // ✅ ATOMIC UPDATE (VERY IMPORTANT)
+    await User.updateOne(
+      { tgId: userId },
+      {
+        ...rewardText,
+        lastMysteryBox: now
+      }
+    );
 
-    bot.sendMessage(msg.chat.id, rewardText);
+    bot.sendMessage(chatId, message);
   }
 );
-const lb = readLeaderboard();
-if (lb.seasonEnded) {
-  lb.seasonEnded = false;
-  writeLeaderboard(lb);
-}
+
 
 registerCommand(
   /^\/endseason$/,
   "End ranked season and reward players",
-  (msg) => {
+  async (msg) => {
+    const chatId = msg.chat.id;
     const adminId = msg.from.id.toString();
+
     if (!ADMIN.includes(adminId)) {
-      return bot.sendMessage(msg.chat.id, "🚫 Admin only.");
+      return bot.sendMessage(chatId, "🚫 Admin only.");
     }
 
-    const lb = readLeaderboard();
+    const Leaderboard = require("./db/models/Leaderboard");
+    const User = require("./db/models/User");
 
-    // 🔒 Session guard
+    // 🔒 Get leaderboard
+    const lb = await Leaderboard.findOne();
+
+    if (!lb) {
+      return bot.sendMessage(chatId, "❌ Leaderboard not initialized.");
+    }
+
     if (lb.seasonEnded) {
       return bot.sendMessage(
-        msg.chat.id,
+        chatId,
         "⚠️ This season has already been ended."
       );
     }
 
     const season = lb.currentSeason;
 
-    const ranked = Object.entries(lb.scores)
+    // 🏆 Rank players
+    const ranked = Object.entries(lb.scores || {})
       .sort(
         (a, b) =>
           (b[1]?.seasons?.[season] || 0) -
           (a[1]?.seasons?.[season] || 0)
       );
 
-    ranked.forEach(([uid], index) => {
-      const user = users[uid];
-      if (!user) return;
+    // 🎁 Reward users
+    for (let index = 0; index < ranked.length; index++) {
+      const [telegramId] = ranked[index];
 
-      user.coins ??= 0;
-      user.badges ??= [];
+      let update = {};
 
       if (index === 0) {
-        user.coins += 5000;
-        user.badges.push(`🏆 Season ${season} Champion`);
-      } else if (index < 5) user.coins += 2000;
-      else if (index < 10) user.coins += 1000;
-      else if (index < 50) user.coins += 300;
-    });
+        update = {
+          $inc: { coins: 5000 },
+          $push: { badges: `🏆 Season ${season} Champion` }
+        };
+      } else if (index < 5) {
+        update = { $inc: { coins: 2000 } };
+      } else if (index < 10) {
+        update = { $inc: { coins: 1000 } };
+      } else if (index < 50) {
+        update = { $inc: { coins: 300 } };
+      } else {
+        continue;
+      }
 
-    // 🔁 Move to next season
+      await User.updateOne(
+        { telegramId },
+        update
+      );
+    }
+
+    // 🔁 Advance season (ATOMIC)
     lb.currentSeason += 1;
     lb.seasonEnded = true;
+    await lb.save();
 
-    saveUsers();
-    writeLeaderboard(lb);
+    // 📣 Notify all users (safe)
+    const users = await User.find({}, { tgId: 1 });
 
-    // 📣 Notify ALL users
-    Object.keys(users).forEach(uid => {
+    for (const u of users) {
       bot.sendMessage(
-        uid,
+        u.telegramId,
         `🎉 <b>Season ${season} has ended!</b>\n\n` +
         `🏆 Rewards have been distributed.\n` +
         `🚀 Season ${lb.currentSeason} has now begun!\n\n` +
         `Start battling to climb the leaderboard again 💪`,
         { parse_mode: "HTML" }
       ).catch(() => {});
-    });
+    }
 
     bot.sendMessage(
-      msg.chat.id,
-      `✅ Season ${season} ended successfully.\nUsers notified.`
+      chatId,
+      `✅ Season ${season} ended successfully.\nUsers rewarded & notified.`
     );
   }
 );
@@ -4619,49 +4560,110 @@ function sendBattleRequest(challengerId, opponentId, chatId) {
   });
 }
 
-/*registerCommand(
-  /\/codebattle (@\w+)/,
+registerCommand(
+  /\/codebattle(?:\s+@(\w+))?/,
   "Challenge another user to a code battle",
-  (msg, match) => {
+  async (msg, match) => {
+    const chatId = msg.chat.id;
     const challengerId = msg.from.id.toString();
-    const opponentUsername = match[1].replace("@", "");
-    const opponent = Object.values(users).find(u => u.username === opponentUsername);
 
-    if (!opponent) {
-      return bot.sendMessage(msg.chat.id, "❌ Opponent not found.");
+    const User = require("./db/models/User");
+    const CodeBattle = require("./db/models/CodeBattle");
+
+    // 🔎 Get challenger
+    const challenger = await User.findOne({ tgId: challengerId });
+    if (!challenger) {
+      return bot.sendMessage(chatId, "❌ You are not registered.");
     }
 
-    const opponentId = opponent.id.toString();
-    const battleId = `${challengerId}_${opponentId}_${Date.now()}`;
+    // Case 1: username provided
+    if (match[1]) {
+      const opponent = await User.findOne({ username: match[1] });
 
-    activeBattles[battleId] = {
-      challenger: challengerId,
-      opponent: opponentId,
-      scores: { [challengerId]: 0, [opponentId]: 0 },
-      questionIndex: 0
-    };
+      if (!opponent) {
+        return bot.sendMessage(chatId, "❌ Opponent not found.");
+      }
+
+      return sendBattleRequest(challenger, opponent, chatId);
+    }
+
+    // Case 2: show inline list
+    const users = await User.find(
+      { tgId: { $ne: challengerId }, username: { $exists: true } },
+      { tgId: 1, username: 1 }
+    ).limit(10);
+
+    if (!users.length) {
+      return bot.sendMessage(chatId, "❌ No users available to challenge.");
+    }
+
+    bot.sendMessage(chatId, "⚔ Choose a user to challenge:", {
+      reply_markup: {
+        inline_keyboard: users.map(u => [
+          {
+            text: `@${u.username}`,
+            callback_data: `battle_${challengerId}_${u.telegramId}`
+          }
+        ])
+      }
+    });
+  }
+);
+bot.on("callback_query", async (q) => {
+  const CodeBattle = require("./db/models/CodeBattle");
+  const User = require("./db/models/User");
+
+  const data = q.data;
+
+  if (data.startsWith("battle_")) {
+    const [, challengerId, opponentId] = data.split("_");
+
+    const challenger = await User.findOne({ tgId: challengerId });
+    const opponent = await User.findOne({ tgId: opponentId });
+
+    if (!challenger || !opponent) return;
+
+    await sendBattleRequest(challenger, opponent, q.message.chat.id);
+    return bot.answerCallbackQuery(q.id);
+  }
+
+  if (data.startsWith("accept_")) {
+    const battleId = data.split("_")[1];
+
+    const battle = await CodeBattle.findOne({ battleId });
+    if (!battle) return;
+
+    battle.status = "active";
+    await battle.save();
+
+    const challenger = await User.findOne({ tgId: battle.challengerId });
+    const opponent = await User.findOne({ tgId: battle.opponentId });
 
     bot.sendMessage(
-      msg.chat.id,
-      `⚔ Battle started between ${msg.from.first_name} and @${opponentUsername}!\nYou will receive questions in DM.`
+      battle.chatId,
+      `✅ @${opponent.username} accepted the challenge from @${challenger.username}!\nThe battle begins now!`
     );
 
-    // DM the opponent
-    bot.sendMessage(opponentId, `⚔ You have been challenged to a code battle by ${msg.from.first_name}!`);
+    bot.answerCallbackQuery(q.id);
   }
-);*/
+
+  if (data.startsWith("decline_")) {
+    const battleId = data.split("_")[1];
+
+    await CodeBattle.updateOne(
+      { battleId },
+      { $set: { status: "declined" } }
+    );
+
+    bot.answerCallbackQuery(q.id);
+  }
+});
 
 
 
 // ===== Leaderboard system (top 30 + weekly) =====
 const LB_PATH = './leaderboard_data.json';
 
-// Data model saved in leaderboard_data.json:
-// {
-//   users: { <userId>: { username, mainPoints, weeklyPoints, gamesPlayed, wins, losses, premiumExpiry (ms) || null, lastWeekRank || null } },
-//   lastWeeklySnapshot: { <userId>: rank, ... },
-//   lastWeeklyResetAt: <timestamp>
-// }
 
 function loadLeaderboardData() {
   try {
@@ -4689,35 +4691,41 @@ function getPremiumBadge(expiryMs) {
 }
 
 // Internal: ensure user exists
-function ensureLbUser(userId, username = 'Unknown') {
-  if (!lbData.users[userId]) {
-    lbData.users[userId] = {
-      username: username,
-      mainPoints: 0,
-      weeklyPoints: 0,
-      gamesPlayed: 0,
-      wins: 0,
-      losses: 0,
-      premiumExpiry: null,
-      lastWeekRank: null
-    };
-  } else {
-    // keep username updated if changed
-    lbData.users[userId].username = username || lbData.users[userId].username;
-  }
+async function ensureLbUser(userId) {
+  const Leaderboard = require("./db/models/Leaderboard");
+
+  await Leaderboard.updateOne(
+    { tgId: userId },
+    { $setOnInsert: { tgId: userId } },
+    { upsert: true }
+  );
 }
 
+
 // Public: add points (call this from your battle/game code)
-function addPoints(userId, username, points = 0, { gamePlayed = true, win = false } = {}) {
-  ensureLbUser(userId, username);
-  const u = lbData.users[userId];
-  u.mainPoints = (u.mainPoints || 0) + points;
-  u.weeklyPoints = (u.weeklyPoints || 0) + points;
-  if (gamePlayed) u.gamesPlayed = (u.gamesPlayed || 0) + 1;
-  if (win) u.wins = (u.wins || 0) + 1;
-  if (!win && gamePlayed) u.losses = (u.losses || 0) + 0; // optionally update losses
-  saveLeaderboardData(lbData);
+async function addPoints(
+  userId,
+  points = 0,
+  { gamePlayed = true, win = false } = {}
+) {
+  const Leaderboard = require("./db/models/Leaderboard");
+
+  const update = {
+    $inc: {
+      mainPoints: points,
+      weeklyPoints: points,
+      gamesPlayed: gamePlayed ? 1 : 0,
+      wins: win ? 1 : 0
+    }
+  };
+
+  await Leaderboard.updateOne(
+    { tgId: userId },
+    update,
+    { upsert: true }
+  );
 }
+
 
 // Public: set premium expiry for user (ms)
 function setPremium(userId, expiryMs) {
@@ -4736,6 +4744,52 @@ function getSortedUsersByWeekly() {
   return Object.entries(lbData.users)
     .map(([id, u]) => ({ id, ...u }))
     .sort((a,b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0));
+}
+function formatLeaderboard(list, title = "Leaderboard") {
+  if (!list || !list.length) {
+    return `<b>${title} Leaderboard</b>\n\nNo data yet.`;
+  }
+
+  const medals = ["🥇", "🥈", "🥉"];
+
+  const lines = list.map((user, index) => {
+    const rank = medals[index] || `#${index + 1}`;
+    const name = user.displayName || user.username || "Unknown";
+    const score = user.coins ?? user.points ?? 0;
+
+    return `${rank} ${name} — <b>${score}</b>`;
+  });
+
+  return `<b>🏆 ${title} Leaderboard</b>\n\n${lines.join("\n")}`;
+}
+
+async function getSortedUsers(type = "main", limit = 30) {
+  const Leaderboard = require("./db/models/Leaderboard");
+  const User = require("./db/models/User");
+
+  const sortField = type === "main" ? "mainPoints" : "weeklyPoints";
+
+  const rows = await Leaderboard
+    .find()
+    .sort({ [sortField]: -1 })
+    .limit(limit)
+    .lean();
+
+  const userIds = rows.map(r => r.telegramId);
+  const users = await User.find(
+    { tgId: { $in: userIds } },
+    { tgId: 1, username: 1, premiumExpires: 1 }
+  ).lean();
+
+  const userMap = Object.fromEntries(
+    users.map(u => [u.telegramId, u])
+  );
+
+  return rows.map((r, i) => ({
+    ...r,
+    rank: i + 1,
+    user: userMap[r.telegramId]
+  }));
 }
 
 // Format rank change vs lastWeeklySnapshot
@@ -4769,60 +4823,105 @@ function buildLeaderboardMessage(type = 'main', topN = 30) {
 }
 
 // Commands to show leaderboards
-registerCommand(/\/leaderboard_main$/,
-  "Main Leaderboard",
-   (msg) => {
-  const text = buildLeaderboardMessage('main', 30);
-  bot.sendMessage(msg.chat.id, text, { parse_mode: 'HTML', disable_web_page_preview: true });
+registerCommand(/\/leaderboard_main$/, "Main Leaderboard", async (msg) => {
+  const list = await getSortedUsers("main", 30);
+  const text = formatLeaderboard(list, "Main");
+  bot.sendMessage(msg.chat.id, text, { parse_mode: "HTML" });
 });
 
-registerCommand(/\/leaderboard_week$/,
-  "Weekly Leaderboard",
-   (msg) => {
-  const text = buildLeaderboardMessage('weekly', 30);
-  bot.sendMessage(msg.chat.id, text, { parse_mode: 'HTML', disable_web_page_preview: true });
+registerCommand(/\/leaderboard_week$/, "Weekly Leaderboard", async (msg) => {
+  const list = await getSortedUsers("weekly", 30);
+  const text = formatLeaderboard(list, "Weekly");
+  bot.sendMessage(msg.chat.id, text, { parse_mode: "HTML" });
 });
 
 
-// Admin helper: snapshot weekly ranks (call on weekly reset)
-function snapshotWeeklyRanksAndReset() {
-  // snapshot current weekly ranks
-  const weekly = getSortedUsersByWeekly();
-  lbData.lastWeeklySnapshot = {};
+async function snapshotWeeklyRanksAndReset() {
+  const Leaderboard = require("./db/models/Leaderboard");
+  const LeaderboardMeta = require("./db/models/LeaderboardMeta");
+  const User = require("./db/models/User");
+
+  // 1️⃣ Get sorted weekly leaderboard
+  const weekly = await Leaderboard
+    .find()
+    .sort({ weeklyPoints: -1 })
+    .lean();
+
+  if (weekly.length === 0) return;
+
+  // 2️⃣ Build snapshot
+  const snapshot = {};
   weekly.forEach((u, idx) => {
-    lbData.lastWeeklySnapshot[u.id] = idx + 1;
+    snapshot[u.telegramId] = idx + 1;
   });
 
-  // Optionally compute Best Player of Week
+  // 3️⃣ Save snapshot + reset time
+  await LeaderboardMeta.updateOne(
+    { key: "weekly" },
+    {
+      $set: {
+        lastWeeklySnapshot: snapshot,
+        lastWeeklyResetAt: Date.now()
+      }
+    },
+    { upsert: true }
+  );
+
+  // 4️⃣ Best player announcement
   const best = weekly[0];
   if (best) {
-    // announce to users (or admin channel)
-    const announcement = `🏆 Best Player of the Week: ${getPremiumBadge(best.premiumExpiry) || ''} <b>${escapeHTML(best.username)}</b> — ${best.weeklyPoints} pts!`;
-    // broadcast to all users (use your users object to iterate)
-    Object.keys(users).forEach(chatId => {
-      bot.sendMessage(chatId, announcement, { parse_mode: 'HTML' }).catch(()=>{});
-    });
+    const bestUser = await User.findOne(
+      { tgId: best.telegramId },
+      { username: 1, premiumExpires: 1 }
+    ).lean();
+
+    const badge = getPremiumBadge(bestUser?.premiumExpires);
+    const announcement =
+      `🏆 <b>Best Player of the Week</b>\n\n` +
+      `${badge ? badge + " " : ""}<b>${escapeHTML(bestUser?.username || "Unknown")}</b>\n` +
+      `🔥 ${best.weeklyPoints} points`;
+
+    const allUsers = await User.find({}, { tgId: 1 }).lean();
+    for (const u of allUsers) {
+      bot.sendMessage(u.telegramId, announcement, { parse_mode: "HTML" })
+        .catch(() => {});
+    }
   }
 
-  // reset weeklyPoints for everyone
-  Object.values(lbData.users).forEach(u => {
-    u.weeklyPoints = 0;
-    u.lastWeekRank = lbData.lastWeeklySnapshot[u.id] || null;
-  });
+  // 5️⃣ Reset weekly points + store lastWeekRank
+  const bulk = weekly.map(u => ({
+    updateOne: {
+      filter: { tgId: u.telegramId },
+      update: {
+        $set: {
+          weeklyPoints: 0,
+          lastWeekRank: snapshot[u.telegramId] || null
+        }
+      }
+    }
+  }));
 
-  lbData.lastWeeklyResetAt = Date.now();
-  saveLeaderboardData(lbData);
+  if (bulk.length) {
+    await Leaderboard.bulkWrite(bulk);
+  }
 }
+
+// Admin helper: snapshot weekly ranks (call on weekly reset)
 
 // Schedule weekly reset: run snapshot at a weekly interval.
 // Implementation choice: run once every day at server startup check if more than 7 days since last reset.
 // This avoids fragile cron/timezone issues.
-function maybeRunWeeklyReset() {
+async function maybeRunWeeklyReset() {
+  const LeaderboardMeta = require("./db/models/LeaderboardMeta");
   const oneWeek = 7 * 24 * 60 * 60 * 1000;
-  if (!lbData.lastWeeklyResetAt || (Date.now() - lbData.lastWeeklyResetAt) > oneWeek) {
-    snapshotWeeklyRanksAndReset();
+
+  const meta = await LeaderboardMeta.findOne({ key: "weekly" }).lean();
+
+  if (!meta || !meta.lastWeeklyResetAt || Date.now() - meta.lastWeeklyResetAt > oneWeek) {
+    await snapshotWeeklyRanksAndReset();
   }
 }
+
 // call at startup
 maybeRunWeeklyReset();
 // and also set interval to check daily
@@ -4838,81 +4937,69 @@ function getUserRanks(userId) {
 }
 
 // Command: /myinfo show ranks and coins (if you store coins in users.json)
-registerCommand(/\/myinfo$/,
-  "User info",
-   (msg) => {
+registerCommand(/\/myinfo$/, "User info", async (msg) => {
   const userId = msg.from.id.toString();
-  const u = lbData.users[userId];
-  if (!u) return bot.sendMessage(msg.chat.id, "❌ You are not on the leaderboard yet.");
 
-  const ranks = getUserRanks(userId);
-  const badge = getPremiumBadge(u.premiumExpiry) || '';
+  const Leaderboard = require("./db/models/Leaderboard");
+  const User = require("./db/models/User");
+
+  const lb = await Leaderboard.findOne({ tgId: userId }).lean();
+  if (!lb) {
+    return bot.sendMessage(msg.chat.id, "❌ You are not on the leaderboard yet.");
+  }
+
+  const user = await User.findOne(
+    { tgId: userId },
+    { username: 1, premiumExpires: 1, coins: 1 }
+  ).lean();
+
+  const badge = getPremiumBadge(user?.premiumExpires);
+  const ranks = await getUserRanks(userId);
+
   const info = `
 <b>📜 Your Leaderboard Info</b>
-👤 ${badge} <b>${escapeHTML(u.username || 'Unknown')}</b>
-🏅 Main points: <b>${u.mainPoints || 0}</b> (Rank: ${ranks.mainRank || '—'})
-🕒 Weekly points: <b>${u.weeklyPoints || 0}</b> (Rank: ${ranks.weeklyRank || '—'})
-🎮 Games played: <b>${u.gamesPlayed || 0}</b>
-🏆 Wins: <b>${u.wins || 0}</b>
+👤 ${badge ? badge + " " : ""}<b>${escapeHTML(user?.username || "Unknown")}</b>
+🏅 Main points: <b>${lb.mainPoints || 0}</b> (Rank: ${ranks.mainRank || "—"})
+🕒 Weekly points: <b>${lb.weeklyPoints || 0}</b> (Rank: ${ranks.weeklyRank || "—"})
+🎮 Games played: <b>${lb.gamesPlayed || 0}</b>
+🏆 Wins: <b>${lb.wins || 0}</b>
+💰 Coins: <b>${user?.coins || 0}</b>
 `;
 
-  bot.sendMessage(msg.chat.id, info, { parse_mode: 'HTML', disable_web_page_preview: true });
+  bot.sendMessage(msg.chat.id, info, { parse_mode: "HTML" });
 });
+
 
 function generateCertificate(user, courseKey) {
   const date = new Date().toLocaleDateString();
-  const certId = `${courseKey.toUpperCase()}-${user.id}-${Date.now().toString().slice(-6)}`;
+  const certId = `${courseKey.toUpperCase()}-${user.telegramId}-${Date.now().toString().slice(-6)}`;
 
   const name =
     user.username ? `@${user.username}` :
-    user.first_name ? user.first_name :
-    `User ${user.id}`;
+    user.firstName ? user.firstName :
+    `User ${user.telegramId}`;
 
   return `
-🎓 *CERTIFICATE OF COMPLETION*
+🎓 <b>CERTIFICATE OF COMPLETION</b>
 
 This certifies that
 
-👤 *${name}*
+👤 <b>${escapeHTML(name)}</b>
 
 has successfully completed the
 
-📚 *${courseKey.toUpperCase()} Premium Course*
+📚 <b>${courseKey.toUpperCase()} Premium Course</b>
 
 📅 Date: ${date}
-🆔 Certificate ID: ${certId}
+🆔 Certificate ID: <code>${certId}</code>
 
 💎 Issued by: Your Premium Learning Program
-  `;
+`;
 }
 
 
-// ----------------------------
-// Integration notes (where to call functions)
-// ----------------------------
-// 1) When awarding points in your battle submit or when awarding points elsewhere, call:
-//      addPoints(userId.toString(), usernameString, pointsAmount, { gamePlayed: true, win: true/false });
-//    Example inside your battle handler where you already award +10 points:
-//      addPoints(String(uid), msg.from.username || msg.from.first_name || 'Player', 10, { gamePlayed: true, win: true });
-//
-// 2) When you add premium expiry upon purchase, call:
-//      setPremium(String(userId), Date.now() + days * 24*60*60*1000);
-//
-// 3) If you want automatic periodic announcements of Weekly Best Player, adjust `maybeRunWeeklyReset()` behavior
-//    or call `snapshotWeeklyRanksAndReset()` on your weekly cron (or admin trigger).
-//
-// 4) Files created: leaderboard_data.json (auto).
-//
-// ----------------------------
-// Export some helpers if needed (attach to global or module exports)
-global.leaderboard = {
-  addPoints,
-  setPremium,
-  getSortedUsersByMain,
-  getSortedUsersByWeekly,
-  buildLeaderboardMessage,
-  lbData
-};
+
+
 
 // ===== Premium Courses Data =====
 const premiumCourses = {
@@ -5295,10 +5382,12 @@ Success is not just about coding skills — it’s about how you market yourself
 });*/
 
 // ===== Command: /premiumcourse =====
-registerCommand(/\/premiumcourses$/, "List premium courses", (msg) => {
+registerCommand(/\/premiumcourses$/, "List premium courses", async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id.toString();
-  const user = users[userId];
+  const { getUserByInternalId } = require("./db/userService");
+
+  const user = await getUserByInternalId(userId);
 
   if (!user?.premium?.isPremium || user.premium.expiresAt < Date.now()) {
     return bot.sendMessage(chatId,
@@ -5316,15 +5405,20 @@ registerCommand(/\/premiumcourses$/, "List premium courses", (msg) => {
   );
 });
 
+
 const activeCourseSessions = {};
 
-registerCommand(/^\/premiumcourse (\w+)$/i, "Start premium course", (msg, match) => {
+registerCommand(/^\/premiumcourse (\w+)$/i, "Start premium course", async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id.toString();
   const courseKey = match[1].toLowerCase();
-  const user = users[userId];
+  const { getUserByInternalId } = require("./db/userService");
 
-  if (!user) return bot.sendMessage(chatId, "❌ You are not registered.");
+  const user = await getUserByInternalId(userId);
+
+  if (!user) {
+    return bot.sendMessage(chatId, "❌ You are not registered.");
+  }
 
   if (!user.premium?.isPremium || user.premium.expiresAt < Date.now()) {
     return bot.sendMessage(chatId,
@@ -5338,7 +5432,6 @@ registerCommand(/^\/premiumcourse (\w+)$/i, "Start premium course", (msg, match)
     );
   }
 
-  // Create session
   activeCourseSessions[userId] = {
     courseKey,
     lessonIndex: 0
@@ -5346,6 +5439,7 @@ registerCommand(/^\/premiumcourse (\w+)$/i, "Start premium course", (msg, match)
 
   sendLesson(chatId, userId);
 });
+
 
 registerCommand(/\/prevcourse$/, "Previous premium lesson", (msg) => {
   const userId = msg.from.id.toString();
@@ -5360,66 +5454,43 @@ registerCommand(/\/prevcourse$/, "Previous premium lesson", (msg) => {
   sendLesson(chatId, userId);
 });
 
-registerCommand(/\/nextprem$/, "Next premium lesson", (msg) => {
+
+
+registerCommand(/\/nextprem$/, "Next premium lesson", async (msg) => {
   const userId = msg.from.id.toString();
   const chatId = msg.chat.id;
   const session = activeCourseSessions[userId];
 
   if (!session) {
-    return bot.sendMessage(chatId,
+    return bot.sendMessage(
+      chatId,
       "⚠️ No active course.\nUse /premiumcourses to start one."
     );
   }
 
+  const course = premiumCourses[session.courseKey];
   session.lessonIndex++;
 
-  const course = premiumCourses[session.courseKey];
-  const lesson = course[session.lessonIndex]; // ✅ get the current lesson
+  // Course completed
+  if (session.lessonIndex >= course.length) {
+    const { getUserByInternalId } = require("./db/userService");
+    const user = await getUserByInternalId(userId);
+    if (!user) return;
 
-  // If no lesson left → course completed
-  if (!lesson) {
-    const user = users[userId];
     const certificate = generateCertificate(user, session.courseKey);
-
     delete activeCourseSessions[userId];
 
     return bot.sendMessage(
       chatId,
-      `🎉 *Course Completed!*\n\n${certificate}`,
-      { parse_mode: "Markdown" }
+      `🎉 <b>Course Completed!</b>\n\n${certificate}`,
+      { parse_mode: "HTML" }
     );
   }
 
-  // Send the next lesson
   sendLesson(chatId, userId);
 });
 
 
-/*registerCommand(/\/nextprem$/, "Next premium lesson", (msg) => {
-  const userId = msg.from.id.toString();
-  const chatId = msg.chat.id;
-  const session = activeCourseSessions[userId];
-
-  if (!session) {
-    return bot.sendMessage(chatId,
-      "⚠️ No active course.\nUse /premiumcourses to start one."
-    );
-  }
-
-  session.lessonIndex++;
-
-  const course = premiumCourses[session.courseKey];
-  if (session.lessonIndex >= course.length) {
-    delete activeCourseSessions[userId];
-    return bot.sendMessage(chatId,
-      "🎉 Course completed!\nUse /premiumcourses to start another."
-    );
-  }
-
-  
-
-  sendLesson(chatId, userId);
-});*/
 
 
 function sendLesson(chatId, userId) {
