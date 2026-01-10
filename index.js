@@ -8,8 +8,13 @@ const express = require("express");
 const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
-const mongoose = require("mongoose");
+//const mongoose = require("mongoose");
 //const { getUserRankByCoins } = require("./db/LeaderboardService");
+const connectMongo = require("./db/connectMongo");
+
+(async () => {
+  await connectMongo();
+})();
 
 
 function escapeHTML(text = "") {
@@ -20,12 +25,12 @@ function escapeHTML(text = "") {
 }
 
 
-mongoose.connect(process.env.MONGO_URI, {
+/*mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true 
 })
 .then(() => console.log("✅ MongoDB Connected"))
-.catch(err => console.error("❌ MongoDB Error:", err));
+.catch(err => console.error("❌ MongoDB Error:", err));*/
 //const User = require("./models/User");
 const User = require("./models/User");
 
@@ -2178,8 +2183,10 @@ registerCommand(
 
     const data = readBattles();
 
-    const { getUserByTelegramId, updateUserCoins } =
+    const { getUserByTelegramId } =
       require("./db/userService");
+      const { updateUserCoins } = require("./db/userService");
+
 
     const user = await getUserByTelegramId(tgId);
     if (!user) {
