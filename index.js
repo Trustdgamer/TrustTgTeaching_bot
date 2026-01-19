@@ -4930,7 +4930,7 @@ function getUserRanks(userId) {
 }
 
 // Command: /myinfo show ranks and coins (if you store coins in users.json)
-registerCommand(/\/myinfo$/, "User info", async (msg) => {
+registerCommand(/\/myinf$/, "User info", async (msg) => {
   const userId = msg.from.id.toString();
 
   const Leaderboard = require("./db/models/Leaderboard");
