@@ -62,21 +62,7 @@ async function getUser(tgUser) {
 }
 
 
-function readJSON(file) {
-  try {
-    return JSON.parse(fs.readFileSync(file));
-  } catch {
-    return {};
-  }
-}
 
-function saveJSON(path, data) {
-  try {
-    fs.writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Error saving JSON to', path, e);
-  }
-}
 // Utils
 const utils = require("./utils");
 
@@ -88,7 +74,7 @@ const ADMIN_IDS = ["6499793556"];
 
 
 //const users = readJSON("./users.json") || {};
-const leaderboard = readJSON("./leaderboard.json") || {};
+//const leaderboard = readJSON("./leaderboard.json") || {};
 const battles = readJSON("./battles.json") || { battles: [] };
 
 // ----------------- API ROUTES -----------------
@@ -112,7 +98,7 @@ app.get("/api/battles", (req, res) => {
 });
 
 // Give coins (monetization)
-app.get("/api/give-coins", (req, res) => {
+/*app.get("/api/give-coins", (req, res) => {
   if (!ADMIN_IDS.includes(req.query.admin)) return res.status(403).send("Unauthorized");
 
   const uid = req.query.uid;
@@ -124,7 +110,7 @@ app.get("/api/give-coins", (req, res) => {
   users[uid].coins = (users[uid].coins || 0) + amt;
   saveJSON("./users.json", users);
   res.send(`✅ Gave ${amt} coins to ${uid}`);
-});
+});*/
 
 // ----------------- DASHBOARD STATIC FILES -----------------
 
@@ -191,7 +177,7 @@ function formatRemainingTime(ms) {
 
 
 
-function loadJSON(path) {
+/*function loadJSON(path) {
   try {
     if (!fs.existsSync(path)) return {};
     const data = fs.readFileSync(path, 'utf8');
@@ -200,7 +186,7 @@ function loadJSON(path) {
     console.error('Error loading JSON from', path, e);
     return {};
   }
-}
+}*/
 
 
 // Command registry
@@ -233,7 +219,7 @@ function registerCommand(regex, description, handler) {
 
 
 //onst path = './users.json';
-const mailboxFile = './mailboxes.json';
+//const mailboxFile = './mailboxes.json';
 
 function readMailboxes() {
   try {
@@ -243,9 +229,9 @@ function readMailboxes() {
   }
 }
 
-function writeMailboxes(data) {
+/*unction writeMailboxes(data) {
   fs.writeFileSync(mailboxFile, JSON.stringify(data, null, 2));
-}
+}*/
 const { v4: uuidv4 } = require('uuid');  // npm i uuid
 
 function addMailToUser(userId, mail) {
@@ -417,7 +403,7 @@ const easterEggs = [
 ];
 
 
-function getUserId(msg) {
+/*function getUserId(msg) {
   const chatId = msg.chat.id.toString();
   if (!users[chatId]) {
     users[chatId] = {
@@ -431,7 +417,7 @@ function getUserId(msg) {
     writeJSON('./users.json', users);
   }
   return users[chatId].id;
-}
+}*/
 
 function generateUniqueId() {
   return Math.random().toString(36).substr(2, 9);
@@ -3968,7 +3954,7 @@ const coupons = [
   { type: 'points', amount: 500, description: '500 free points' }
 ];
 
-const awardedCoupons = readJSON('./coupons.json'); // save awarded coupons history
+//const awardedCoupons = readJSON('./coupons.json'); // save awarded coupons history
 /*registerCommand(
   /\/profile$/,                      // regex
   "Show your profile info",          // description
@@ -4669,7 +4655,7 @@ bot.on("callback_query", async (q) => {
 
 
 // ===== Leaderboard system (top 30 + weekly) =====
-const LB_PATH = './leaderboard_data.json';
+//const LB_PATH = './leaderboard_data.json';
 
 
 function loadLeaderboardData() {
